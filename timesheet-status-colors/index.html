@@ -88,8 +88,33 @@
   .status-section-header {
     padding: 8px 18px; font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.06em; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; user-select: none;
+  }
+  .status-section-header.collapsed {
+    cursor: pointer;
+  }
+  .status-section-header.sh-released-collapsed {
+    cursor: pointer; font-weight: 600; text-transform: none;
   }
   .section-count { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; background: rgba(0,0,0,0.06); }
+  .released-toggle-label {
+    font-size: 11px; font-weight: 600; color: #6b6b6b; display: flex; align-items: center; gap: 4px;
+  }
+
+  /* ─── Unreleased/Released grouping (Variant B) ─── */
+  .variant-b-unreleased { margin-bottom: 0; }
+  .variant-b-released-section { margin-top: 0; margin-bottom: 0; }
+  .variant-b-released-content { display: none; }
+  .variant-b-released-content.show { display: block; }
+  .sh-unreleased { font-weight: 700; text-transform: uppercase; padding: 10px 18px; }
+  .sh-released-header {
+    padding: 8px 18px; cursor: pointer; user-select: none; font-weight: 600;
+    text-transform: none; display: flex; justify-content: space-between; align-items: center;
+  }
+  .variant-b-error-entry .entry-indicator { display: none; }
+  .variant-b-error-entry .entry-title::before { content: "⚠ "; margin-right: 4px; }
+  .variant-b-ready-entry .entry-indicator { width: 8px; background: none !important; }
+  .variant-b-ready-entry .entry-indicator::before { content: "● "; font-size: 14px; }
 
   /* ─── Release day ─── */
   .release-day-badge { background: #dc2626; color: #fff; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; }
@@ -108,9 +133,9 @@
 
   /* ═══════════════════════════════════════
      COLOR SYSTEM 1: "Action Orange / Neutral Grey"
-     Ready = warm orange/amber (ACT NOW)
-     Released = grey (done, recede)
-     Error = red (problem)
+     Ready = warm orange/amber (#f59e0b)
+     Released = grey (#d1d5db)
+     Error = red (#ef4444)
      ═══════════════════════════════════════ */
   .cs1 .ind-ready { background: #f59e0b; }
   .cs1 .ind-released { background: #d1d5db; }
@@ -139,14 +164,21 @@
   .cs1 .sh-error { background: #fef2f2; color: #dc2626; border-bottom: 1px solid #fecaca; }
   .cs1 .sh-done { background: #f9fafb; color: #9ca3af; border-bottom: 1px solid #f0f0f0; }
 
+  /* Variant B (Unreleased/Released) colors for CS1 */
+  .cs1 .sh-unreleased { background: rgba(245, 158, 11, 0.05); color: #92400e; border-bottom: 1px solid rgba(245, 158, 11, 0.15); }
+  .cs1 .sh-released-header { background: #f9fafb; color: #9ca3af; border-bottom: 1px solid #f0f0f0; }
+  .cs1 .variant-b-ready-entry .entry-indicator::before { color: #f59e0b; }
+  .cs1 .variant-b-error-entry .entry-title::before { color: #ef4444; }
+  .cs1 .tag-error-dashed { border: 1px dashed #ef4444; color: #ef4444; background: #fef2f2; }
+
   .cs1 .matter-all-done { opacity: 0.45; }
   .cs1 .matter-all-done:hover { opacity: 0.7; }
 
   /* ═══════════════════════════════════════
      COLOR SYSTEM 2: "Blue Action / Muted Sage"
-     Ready = blue (primary action, like a button)
-     Released = muted sage/green-grey (done but quiet)
-     Error = red-orange
+     Ready = blue (#2563eb)
+     Released = muted sage (#c7cfc9)
+     Error = orange (#ea580c)
      ═══════════════════════════════════════ */
   .cs2 .ind-ready { background: #2563eb; }
   .cs2 .ind-released { background: #c7cfc9; }
@@ -175,14 +207,21 @@
   .cs2 .sh-error { background: #fff7ed; color: #ea580c; border-bottom: 1px solid #fed7aa; }
   .cs2 .sh-done { background: #f9fafb; color: #9ca3af; border-bottom: 1px solid #f0f0f0; }
 
+  /* Variant B (Unreleased/Released) colors for CS2 */
+  .cs2 .sh-unreleased { background: rgba(37, 99, 235, 0.05); color: #164e99; border-bottom: 1px solid rgba(37, 99, 235, 0.15); }
+  .cs2 .sh-released-header { background: #f9fafb; color: #9ca3af; border-bottom: 1px solid #f0f0f0; }
+  .cs2 .variant-b-ready-entry .entry-indicator::before { color: #2563eb; }
+  .cs2 .variant-b-error-entry .entry-title::before { color: #ea580c; }
+  .cs2 .tag-error-dashed { border: 1px dashed #ea580c; color: #ea580c; background: #fff7ed; }
+
   .cs2 .matter-all-done { opacity: 0.45; }
   .cs2 .matter-all-done:hover { opacity: 0.7; }
 
   /* ═══════════════════════════════════════
      COLOR SYSTEM 3: "Green = Go / Purple = Done"
-     Ready = green (GO, act on this!)
-     Released = purple-grey (processed, inert — like GitHub "merged")
-     Error = red
+     Ready = green (#16a34a)
+     Released = purple-grey (#c4b5d4)
+     Error = red (#ef4444)
      ═══════════════════════════════════════ */
   .cs3 .ind-ready { background: #16a34a; }
   .cs3 .ind-released { background: #c4b5d4; }
@@ -211,6 +250,13 @@
   .cs3 .sh-error { background: #fef2f2; color: #dc2626; border-bottom: 1px solid #fecaca; }
   .cs3 .sh-done { background: #faf9fb; color: #9ca3af; border-bottom: 1px solid #f0f0f0; }
 
+  /* Variant B (Unreleased/Released) colors for CS3 */
+  .cs3 .sh-unreleased { background: rgba(22, 163, 74, 0.05); color: #166534; border-bottom: 1px solid rgba(22, 163, 74, 0.15); }
+  .cs3 .sh-released-header { background: #faf9fb; color: #9ca3af; border-bottom: 1px solid #f0f0f0; }
+  .cs3 .variant-b-ready-entry .entry-indicator::before { color: #16a34a; }
+  .cs3 .variant-b-error-entry .entry-title::before { color: #ef4444; }
+  .cs3 .tag-error-dashed { border: 1px dashed #ef4444; color: #ef4444; background: #fef2f2; }
+
   .cs3 .matter-all-done { opacity: 0.45; }
   .cs3 .matter-all-done:hover { opacity: 0.7; }
 
@@ -230,9 +276,9 @@
   .sw-cs3-released { background: #c4b5d4; }
   .sw-cs3-error { background: #ef4444; }
 
-  .sw-current-ready { background: #ca8a04; }
-  .sw-current-released { background: #16a34a; }
-  .sw-current-error { background: #ea580c; }
+  .sw-current-ready { background: #2563eb; }
+  .sw-current-released { background: #d1d5db; }
+  .sw-current-error { background: #ef4444; }
 
 </style>
 </head>
@@ -262,8 +308,8 @@
     <div class="legend-item"><div class="legend-swatch sw-cs1-error"></div> Validation error</div>
     <div class="legend-item"><div class="legend-swatch sw-cs1-released"></div> Released</div>
     <div class="legend-vs">vs. current →</div>
-    <div class="legend-item"><div class="legend-swatch sw-current-ready"></div> Ready (yellow)</div>
-    <div class="legend-item"><div class="legend-swatch sw-current-released"></div> Released (green)</div>
+    <div class="legend-item"><div class="legend-swatch sw-current-ready"></div> Ready (blue)</div>
+    <div class="legend-item"><div class="legend-swatch sw-current-released"></div> Released (grey)</div>
   </div>
 
   <div class="comparison">
@@ -365,7 +411,7 @@
     </div>
 
     <div class="comparison-col">
-      <h3>Variant B — Sub-groups</h3>
+      <h3>Variant B — Unreleased/Released</h3>
 
       <div class="matter-card">
         <div class="matter-header">
@@ -375,32 +421,31 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-action">
-          <span>● Ready to release</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span class="section-count">1 entry · 1.0 hrs</span>
+        <div class="sh-unreleased">
+          <span>Unreleased</span>
+        </div>
+        <div class="entry-row variant-b-ready-entry">
+          <div class="entry-indicator"></div>
+          <div class="entry-content">
+            <div class="entry-title">Correspondence on Mountain View Deal.</div>
+            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+            <span class="section-count">1.0 hrs</span>
             <button class="btn btn-sm btn-release">Release</button>
           </div>
         </div>
-        <div class="entry-row">
-          <div class="entry-indicator ind-ready"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Mountain View Deal.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
-          </div>
-          <div class="entry-hours">1.0</div>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 1 entry · 1.0 hrs</span>
         </div>
-        <div class="status-section-header sh-done">
-          <span>Released</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
-        </div>
-        <div class="entry-row row-released">
-          <div class="entry-indicator ind-released"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Mountain View Deal.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content">
+              <div class="entry-title">Correspondence on Mountain View Deal.</div>
+              <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            </div>
+            <div class="entry-hours">1.0</div>
           </div>
-          <div class="entry-hours">1.0</div>
         </div>
       </div>
 
@@ -412,30 +457,28 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-error">
-          <span>⚠ Needs attention</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
+        <div class="sh-unreleased">
+          <span>Unreleased</span>
         </div>
-        <div class="entry-row">
-          <div class="entry-indicator ind-error"></div>
+        <div class="entry-row variant-b-error-entry">
+          <div class="entry-indicator"></div>
           <div class="entry-content">
             <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag tag-error">Activity</span></div>
-          </div>
-          <span class="status-badge badge-error"><span class="status-dot dot-error"></span> Error</span>
-          <div class="entry-hours">1.0</div>
-        </div>
-        <div class="status-section-header sh-done">
-          <span>Released</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
-        </div>
-        <div class="entry-row row-released">
-          <div class="entry-indicator ind-released"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag tag-error-dashed">Validation error</span></div>
           </div>
           <div class="entry-hours">1.0</div>
+        </div>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 1 entry · 1.0 hrs</span>
+        </div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content">
+              <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
+              <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            </div>
+            <div class="entry-hours">1.0</div>
+          </div>
         </div>
       </div>
 
@@ -447,9 +490,18 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-done">
-          <span>All released</span>
-          <span class="section-count">2 entries · 2.0 hrs</span>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 2 entries · 2.0 hrs</span>
+        </div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content"><div class="entry-title">Correspondence on RHS Term Sheet.</div></div>
+            <div class="entry-hours">1.0</div>
+          </div>
+          <div class="entry-row row-released">
+            <div class="entry-content"><div class="entry-title">Correspondence on RHS Term Sheet.</div></div>
+            <div class="entry-hours">1.0</div>
+          </div>
         </div>
       </div>
     </div>
@@ -460,11 +512,11 @@
     <div class="tradeoff-grid">
       <div class="tradeoff-item">
         <strong>✓ Strengths</strong>
-        Orange/amber is the strongest "act now" signal that isn't red. Grey is the most neutral possible — released entries genuinely vanish from attention. Clean two-tone system (warm = action, cool/neutral = done). Works well for colorblind users since it doesn't rely on red/green distinction.
+        Orange/amber is the strongest "act now" signal that isn't red. Grey is the most neutral possible — released entries genuinely vanish from attention. Variant B's collapsible Released section keeps the interface uncluttered. Clean, quiet design with no visual noise. Works well for colorblind users since it doesn't rely on red/green distinction.
       </div>
       <div class="tradeoff-item">
         <strong>✗ Risks</strong>
-        Orange can read as "warning" rather than "ready" — users might hesitate to release because the color feels cautionary. No positive reinforcement for released state (grey feels like absence rather than accomplishment). Lawyers may associate orange with problems.
+        Orange can read as "warning" rather than "ready" — users might hesitate to release because the color feels cautionary. Variant B requires users to expand Released section to see completed work. No positive reinforcement for released state (grey feels like absence rather than accomplishment).
       </div>
     </div>
   </div>
@@ -488,8 +540,8 @@
     <div class="legend-item"><div class="legend-swatch sw-cs2-error"></div> Validation error</div>
     <div class="legend-item"><div class="legend-swatch sw-cs2-released"></div> Released</div>
     <div class="legend-vs">vs. current →</div>
-    <div class="legend-item"><div class="legend-swatch sw-current-ready"></div> Ready (yellow)</div>
-    <div class="legend-item"><div class="legend-swatch sw-current-released"></div> Released (green)</div>
+    <div class="legend-item"><div class="legend-swatch sw-current-ready"></div> Ready (blue)</div>
+    <div class="legend-item"><div class="legend-swatch sw-current-released"></div> Released (grey)</div>
   </div>
 
   <div class="comparison">
@@ -591,7 +643,7 @@
     </div>
 
     <div class="comparison-col">
-      <h3>Variant B — Sub-groups</h3>
+      <h3>Variant B — Unreleased/Released</h3>
 
       <div class="matter-card">
         <div class="matter-header">
@@ -601,32 +653,31 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-action">
-          <span>● Ready to release</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span class="section-count">1 entry · 1.0 hrs</span>
+        <div class="sh-unreleased">
+          <span>Unreleased</span>
+        </div>
+        <div class="entry-row variant-b-ready-entry">
+          <div class="entry-indicator"></div>
+          <div class="entry-content">
+            <div class="entry-title">Correspondence on Mountain View Deal.</div>
+            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+            <span class="section-count">1.0 hrs</span>
             <button class="btn btn-sm btn-release">Release</button>
           </div>
         </div>
-        <div class="entry-row">
-          <div class="entry-indicator ind-ready"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Mountain View Deal.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
-          </div>
-          <div class="entry-hours">1.0</div>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 1 entry · 1.0 hrs</span>
         </div>
-        <div class="status-section-header sh-done">
-          <span>Released</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
-        </div>
-        <div class="entry-row row-released">
-          <div class="entry-indicator ind-released"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Mountain View Deal.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content">
+              <div class="entry-title">Correspondence on Mountain View Deal.</div>
+              <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            </div>
+            <div class="entry-hours">1.0</div>
           </div>
-          <div class="entry-hours">1.0</div>
         </div>
       </div>
 
@@ -638,30 +689,28 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-error">
-          <span>⚠ Needs attention</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
+        <div class="sh-unreleased">
+          <span>Unreleased</span>
         </div>
-        <div class="entry-row">
-          <div class="entry-indicator ind-error"></div>
+        <div class="entry-row variant-b-error-entry">
+          <div class="entry-indicator"></div>
           <div class="entry-content">
             <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag tag-error">Activity</span></div>
-          </div>
-          <span class="status-badge badge-error"><span class="status-dot dot-error"></span> Error</span>
-          <div class="entry-hours">1.0</div>
-        </div>
-        <div class="status-section-header sh-done">
-          <span>Released</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
-        </div>
-        <div class="entry-row row-released">
-          <div class="entry-indicator ind-released"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag tag-error-dashed">Validation error</span></div>
           </div>
           <div class="entry-hours">1.0</div>
+        </div>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 1 entry · 1.0 hrs</span>
+        </div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content">
+              <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
+              <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            </div>
+            <div class="entry-hours">1.0</div>
+          </div>
         </div>
       </div>
 
@@ -673,9 +722,18 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-done">
-          <span>All released</span>
-          <span class="section-count">2 entries · 2.0 hrs</span>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 2 entries · 2.0 hrs</span>
+        </div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content"><div class="entry-title">Correspondence on RHS Term Sheet.</div></div>
+            <div class="entry-hours">1.0</div>
+          </div>
+          <div class="entry-row row-released">
+            <div class="entry-content"><div class="entry-title">Correspondence on RHS Term Sheet.</div></div>
+            <div class="entry-hours">1.0</div>
+          </div>
         </div>
       </div>
     </div>
@@ -686,11 +744,11 @@
     <div class="tradeoff-grid">
       <div class="tradeoff-item">
         <strong>✓ Strengths</strong>
-        Blue is the universal "interactive/clickable" color — users instinctively know to act on blue things. Muted sage keeps a whisper of "done" feeling without the vibrancy of green. Clean separation between action (warm blue), error (orange), and complete (neutral). Most professional-feeling palette for legal software.
+        Blue reuses the existing UI action color — users already know it means "do something." Sage is calm and mature without the vibrancy of green. Variant B's collapsible Released section keeps focus on actionable items. Jira precedent means design-savvy users already understand blue = active work.
       </div>
       <div class="tradeoff-item">
         <strong>✗ Risks</strong>
-        Blue for "ready" might compete with other blue interactive elements (links, buttons) in the UI. Sage-grey might be too subtle — users may not read it as "complete" at first. If your product already uses blue heavily, "ready" entries could blend into the chrome rather than standing out.
+        Sage might feel too passive or cold for a "complete" state. Blue+Sage combination might not have enough contrast for some colorblind users. Orange for errors can clash slightly with blue. Variant B's collapsed view means users must expand to see all released items.
       </div>
     </div>
   </div>
@@ -702,11 +760,11 @@
      ═══════════════════════════════════════════════════════════════ -->
 <div id="panel-cs3" class="panel cs3">
   <div class="panel-label">Color System 3</div>
-  <div class="panel-title">Green = Go (Act!) / Purple = Done (Processed)</div>
+  <div class="panel-title">Green = Go / Purple = Done</div>
   <div class="panel-desc">
-    Leans into the traffic-light metaphor correctly: <strong>green = go, act on this NOW.</strong>
-    Borrows GitHub's "merged = purple" pattern for released entries — purple reads as "processed, filed away, inert."
-    It's not a warning, it's not positive — it's simply <em>over</em>. Combined with opacity reduction, purple entries fade into a quiet background layer.
+    <strong>Green = "GO, act on this now"</strong> — pure action color. Aligns with universal traffic-light intuition.
+    <strong>Purple = "this is processed, inert"</strong> — unconventional for legal tools but distinctive. Borrows from GitHub's "merged" state, which is understood by millions of developers as "complete and archived."
+    Red stays for errors.
   </div>
 
   <div class="legend">
@@ -714,8 +772,8 @@
     <div class="legend-item"><div class="legend-swatch sw-cs3-error"></div> Validation error</div>
     <div class="legend-item"><div class="legend-swatch sw-cs3-released"></div> Released</div>
     <div class="legend-vs">vs. current →</div>
-    <div class="legend-item"><div class="legend-swatch sw-current-ready"></div> Ready (yellow)</div>
-    <div class="legend-item"><div class="legend-swatch sw-current-released"></div> Released (green)</div>
+    <div class="legend-item"><div class="legend-swatch sw-current-ready"></div> Ready (blue)</div>
+    <div class="legend-item"><div class="legend-swatch sw-current-released"></div> Released (grey)</div>
   </div>
 
   <div class="comparison">
@@ -817,7 +875,7 @@
     </div>
 
     <div class="comparison-col">
-      <h3>Variant B — Sub-groups</h3>
+      <h3>Variant B — Unreleased/Released</h3>
 
       <div class="matter-card">
         <div class="matter-header">
@@ -827,32 +885,31 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-action">
-          <span>● Ready to release</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span class="section-count">1 entry · 1.0 hrs</span>
+        <div class="sh-unreleased">
+          <span>Unreleased</span>
+        </div>
+        <div class="entry-row variant-b-ready-entry">
+          <div class="entry-indicator"></div>
+          <div class="entry-content">
+            <div class="entry-title">Correspondence on Mountain View Deal.</div>
+            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+            <span class="section-count">1.0 hrs</span>
             <button class="btn btn-sm btn-release">Release</button>
           </div>
         </div>
-        <div class="entry-row">
-          <div class="entry-indicator ind-ready"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Mountain View Deal.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
-          </div>
-          <div class="entry-hours">1.0</div>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 1 entry · 1.0 hrs</span>
         </div>
-        <div class="status-section-header sh-done">
-          <span>Released</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
-        </div>
-        <div class="entry-row row-released">
-          <div class="entry-indicator ind-released"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Mountain View Deal.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content">
+              <div class="entry-title">Correspondence on Mountain View Deal.</div>
+              <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            </div>
+            <div class="entry-hours">1.0</div>
           </div>
-          <div class="entry-hours">1.0</div>
         </div>
       </div>
 
@@ -864,30 +921,28 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-error">
-          <span>⚠ Needs attention</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
+        <div class="sh-unreleased">
+          <span>Unreleased</span>
         </div>
-        <div class="entry-row">
-          <div class="entry-indicator ind-error"></div>
+        <div class="entry-row variant-b-error-entry">
+          <div class="entry-indicator"></div>
           <div class="entry-content">
             <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag tag-error">Activity</span></div>
-          </div>
-          <span class="status-badge badge-error"><span class="status-dot dot-error"></span> Error</span>
-          <div class="entry-hours">1.0</div>
-        </div>
-        <div class="status-section-header sh-done">
-          <span>Released</span>
-          <span class="section-count">1 entry · 1.0 hrs</span>
-        </div>
-        <div class="entry-row row-released">
-          <div class="entry-indicator ind-released"></div>
-          <div class="entry-content">
-            <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
-            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag tag-error-dashed">Validation error</span></div>
           </div>
           <div class="entry-hours">1.0</div>
+        </div>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 1 entry · 1.0 hrs</span>
+        </div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content">
+              <div class="entry-title">Correspondence on Avalon Trust Terms with J. Mahoney.</div>
+              <div class="entry-tags"><span class="tag">L110</span><span class="tag">Working</span><span class="tag">Action</span></div>
+            </div>
+            <div class="entry-hours">1.0</div>
+          </div>
         </div>
       </div>
 
@@ -899,9 +954,18 @@
           </div>
           <div class="matter-meta"><span>2.0</span></div>
         </div>
-        <div class="status-section-header sh-done">
-          <span>All released</span>
-          <span class="section-count">2 entries · 2.0 hrs</span>
+        <div class="sh-released-header" onclick="toggleReleased(this)">
+          <span class="released-toggle-label"><span class="arrow">▸</span> Released · 2 entries · 2.0 hrs</span>
+        </div>
+        <div class="variant-b-released-content">
+          <div class="entry-row row-released">
+            <div class="entry-content"><div class="entry-title">Correspondence on RHS Term Sheet.</div></div>
+            <div class="entry-hours">1.0</div>
+          </div>
+          <div class="entry-row row-released">
+            <div class="entry-content"><div class="entry-title">Correspondence on RHS Term Sheet.</div></div>
+            <div class="entry-hours">1.0</div>
+          </div>
         </div>
       </div>
     </div>
@@ -912,11 +976,11 @@
     <div class="tradeoff-grid">
       <div class="tradeoff-item">
         <strong>✓ Strengths</strong>
-        Aligns with traffic-light instinct correctly — green genuinely means "go, act now." Purple for "done" is novel and distinctive — users won't confuse it with any action state. GitHub has normalized purple-for-merged with millions of developers. Combined with opacity, purple fades beautifully into background noise.
+        Green aligns with universal traffic-light instinct — users immediately understand "GO, do this." Purple for "done" is novel and distinctive, preventing confusion with any action state. GitHub has normalized purple-for-merged with millions of developers. Variant B's collapsible Released section keeps focus on active work while archiving completed items.
       </div>
       <div class="tradeoff-item">
         <strong>✗ Risks</strong>
-        Green for "ready" is a semantic swap from today — released entries used to be green, so this is a 180° change that could confuse existing users. Purple for "released" is unconventional in legal/billing tools. Users may need a learning period. Some may read purple as "special" rather than "inert."
+        Green for "ready" is a 180° semantic swap from current (where released used to be green) — may confuse existing users during transition. Purple for "released" is unconventional in legal/billing tools and may require user education. Some users may read purple as "special" rather than "inert." Variant B's collapsed view hides completed work from users who want to see their full history.
       </div>
     </div>
   </div>
@@ -929,6 +993,13 @@ function showPanel(id) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   event.target.classList.add('active');
+}
+
+function toggleReleased(headerEl) {
+  const content = headerEl.nextElementSibling;
+  const arrow = headerEl.querySelector('.arrow');
+  content.classList.toggle('show');
+  arrow.textContent = content.classList.contains('show') ? '▾' : '▸';
 }
 </script>
 
