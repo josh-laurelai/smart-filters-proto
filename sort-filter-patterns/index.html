@@ -525,8 +525,8 @@ function render(containerId, entries, projectOrder, opts = {}) {
     if (!groups[pid] && !PROJECTS[pid]) return;
     const p = PROJECTS[pid];
     const pDrag = dragProjects ? '' : ' disabled';
-    html += `<div class="project-group" data-project="${pid}" draggable="${dragProjects}">`;
-    html += `<div class="project-header">`;
+    html += `<div class="project-group" data-project="${pid}">`;
+    html += `<div class="project-header" draggable="${dragProjects}">`;
     html += `<span class="project-name">`;
     html += `<span class="project-drag-handle${pDrag}">⋮⋮</span>`;
     html += `<span style="width:4px;height:20px;background:${p.color};border-radius:2px;display:inline-block;"></span>`;
@@ -630,31 +630,33 @@ function setupEntryDrag(container) {
 // === Drag: Projects ===
 let dragSrcProject = null;
 function setupProjectDrag(container) {
-  container.querySelectorAll('.project-group[draggable="true"]').forEach(group => {
-    const handle = group.querySelector('.project-drag-handle');
-    // Only start drag from the handle
-    group.addEventListener('dragstart', e => {
-      if (!handle.contains(e.target) && e.target !== handle) { e.preventDefault(); return; }
+  container.querySelectorAll('.project-group').forEach(group => {
+    const header = group.querySelector('.project-header');
+    if (header.getAttribute('draggable') !== 'true') return;
+
+    header.addEventListener('dragstart', e => {
+      e.stopPropagation();
       dragSrcProject = group;
       group.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', 'project');
     });
-    group.addEventListener('dragend', () => {
+    header.addEventListener('dragend', () => {
       group.classList.remove('dragging');
       container.querySelectorAll('.drag-over-project').forEach(g => g.classList.remove('drag-over-project'));
       dragSrcProject = null;
     });
-    group.querySelector('.project-header').addEventListener('dragover', e => {
+    header.addEventListener('dragover', e => {
       if (!dragSrcProject) return;
       e.preventDefault();
       e.stopPropagation();
-      if (group !== dragSrcProject) group.classList.add('drag-over-project');
+      const srcGroup = dragSrcProject;
+      if (group !== srcGroup) group.classList.add('drag-over-project');
     });
-    group.querySelector('.project-header').addEventListener('dragleave', () => {
+    header.addEventListener('dragleave', () => {
       group.classList.remove('drag-over-project');
     });
-    group.querySelector('.project-header').addEventListener('drop', e => {
+    header.addEventListener('drop', e => {
       e.preventDefault();
       e.stopPropagation();
       group.classList.remove('drag-over-project');
