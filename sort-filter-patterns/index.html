@@ -288,9 +288,9 @@
 
 <nav class="top-nav">
   <button class="nav-tab active" onclick="showPanel('research', this)">Research</button>
-  <button class="nav-tab" onclick="showPanel('current', this)">Current: Always-Active</button>
-  <button class="nav-tab" onclick="showPanel('oneshot', this)">One-Shot Sort</button>
-  <button class="nav-tab" onclick="showPanel('autosort', this)">Auto-Sort Toggle</button>
+  <button class="nav-tab" onclick="showPanel('current', this)">Current Behavior</button>
+  <button class="nav-tab" onclick="showPanel('oneshot', this)">Permanent Rearrange</button>
+  <button class="nav-tab" onclick="showPanel('autosort', this)">Sort as Lens</button>
 </nav>
 
 <!-- ======================== -->
@@ -362,9 +362,9 @@
       <table class="jtbd-table">
         <thead><tr><th>Approach</th><th>Behavior</th><th>Manual Drag-Drop</th></tr></thead>
         <tbody>
-          <tr><td><strong>Current: Always-Active</strong></td><td>Sort persists. Entries re-sort on every edit.</td><td>Not available when sort is active</td></tr>
-          <tr><td><strong>One-Shot Sort</strong></td><td>Sort rearranges once, then view returns to manual. Like shuffling a deck.</td><td>Always available (default state)</td></tr>
-          <tr><td><strong>Auto-Sort Toggle</strong></td><td>User chooses: "Keep sorted" ON = live re-sort, OFF = one-shot + manual reorder.</td><td>Available when toggle is OFF</td></tr>
+          <tr><td><strong>Current Behavior</strong></td><td>Sort persists. Entries re-sort on every edit. No manual ordering.</td><td>Not available</td></tr>
+          <tr><td><strong>Permanent Rearrange</strong></td><td>Sort physically reorders entries once. The new order becomes your order — there's no "sort" to turn off.</td><td>Always available</td></tr>
+          <tr><td><strong>Sort as Lens</strong></td><td>Sort is a temporary view over your manual order. Turn it off and your original arrangement is restored.</td><td>Available when no sort is applied</td></tr>
         </tbody>
       </table>
       <p style="margin-top:16px;"><strong>Note:</strong> The "Needs Attention" concept (surfacing errors inline without sorting) is documented separately — it addresses a different JTBD.</p>
@@ -377,8 +377,8 @@
 <!-- ======================== -->
 <div id="panel-current" class="panel">
   <div class="panel-header">
-    <h2>Current: Always-Active Sort</h2>
-    <p class="subtitle">How Laurel works today. When a sort is applied, it persists — entries re-sort whenever you edit them. Manual drag-reorder is not available while a sort is active.</p>
+    <h2>Current Behavior</h2>
+    <p class="subtitle">How Laurel works today. Sort is always active once applied — entries re-sort whenever values change. There is no manual ordering or drag-drop.</p>
     <span class="jtbd-tag">Baseline for comparison</span>
   </div>
   <div class="proto-area">
@@ -428,9 +428,9 @@
 <!-- ======================== -->
 <div id="panel-oneshot" class="panel">
   <div class="panel-header">
-    <h2>One-Shot Sort</h2>
-    <p class="subtitle">Sort is an action, not a mode. Click a sort option → entries rearrange once → you're immediately back to manual ordering. Like shuffling a deck of cards into a new arrangement. Drag-drop is always available.</p>
-    <span class="jtbd-tag">JTBD: "Temporarily reorder to review, then edit freely"</span>
+    <h2>Permanent Rearrange</h2>
+    <p class="subtitle">Sort is an action, not a mode. Selecting a sort physically reorders your entries — the new arrangement becomes your manual order. There is no sort to "turn off." Drag-drop is always available.</p>
+    <span class="jtbd-tag">JTBD: "Reorganize my entries, then keep editing"</span>
   </div>
   <div class="proto-area">
     <div class="timesheet" id="ts-oneshot">
@@ -463,11 +463,11 @@
       <div class="tradeoff-grid">
         <div class="tradeoff-box pro">
           <strong>Strengths</strong>
-          Spatial stability after sort — entries stay where they land. Drag-drop always available. Supports the "momentary reorder" JTBD well. No persistent state to manage or communicate. Sort button stays inactive — no mode to get stuck in.
+          Spatial stability — entries never move on their own after the rearrange. Drag-drop always available. No persistent state to manage or communicate. No mode to get stuck in. Simple mental model: "sort = reorganize my list."
         </div>
         <div class="tradeoff-box con">
           <strong>Weaknesses</strong>
-          Different from what users expect if they come from always-active-sort tools. No way to maintain a persistent sort. Original order is gone after sorting (unless you manually re-drag). Power users who want "always sorted by status" can't get that here.
+          Original manual order is lost after sorting — you can't undo back to it. Different from what users expect if they come from always-active-sort tools. Power users who want "always sorted by status" can't get that here.
         </div>
       </div>
     </div>
@@ -479,9 +479,9 @@
 <!-- ======================== -->
 <div id="panel-autosort" class="panel">
   <div class="panel-header">
-    <h2>Auto-Sort Toggle</h2>
-    <p class="subtitle">Sort rules can be set, and a "Keep sorted" toggle controls whether sorting is live (entries re-sort on edit, drag disabled) or one-shot (rearrange once, then freely reorder). Gives users explicit control over the tradeoff.</p>
-    <span class="jtbd-tag">JTBD: "Let me choose between my order and the system's order"</span>
+    <h2>Sort as Lens</h2>
+    <p class="subtitle">Sort is a temporary view layered over your manual order. Apply a sort to see entries reorganized — switch back to Manual to restore your original arrangement. Your manual order is always preserved underneath.</p>
+    <span class="jtbd-tag">JTBD: "See my entries in a different order, then go back to my arrangement"</span>
   </div>
   <div class="proto-area">
     <div class="timesheet" id="ts-autosort">
@@ -502,11 +502,6 @@
               <div class="sort-menu-item" onclick="setAutoSort('hours-asc')">Hours (low → high)</div>
               <div class="sort-menu-item" onclick="setAutoSort('status')">By Status</div>
               <div class="sort-menu-item" onclick="setAutoSort('alpha')">Alphabetical</div>
-              <div class="sort-menu-divider"></div>
-              <div class="toggle-row" id="as-toggle-row" style="display:none;">
-                <div class="toggle" id="as-toggle" onclick="toggleKeepSorted(event)"></div>
-                <span id="as-toggle-label">Keep sorted</span>
-              </div>
             </div>
           </div>
           <button class="btn"><span class="icon">⊕</span> Create Entry</button>
@@ -521,11 +516,11 @@
       <div class="tradeoff-grid">
         <div class="tradeoff-box pro">
           <strong>Strengths</strong>
-          Most flexible — covers all JTBDs. "Keep sorted" toggle makes the tradeoff explicit. Manual is the default. Users who want persistent sort can get it. Users who want one-shot sort can get that too. Drag-drop when you want it, auto-sort when you want it.
+          Manual order is never lost — sort is a view, not a destructive action. Users can freely switch between sort views and their own arrangement. Clear mental model: "Manual = my order, everything else = the system's order." Drag-drop available in Manual mode.
         </div>
         <div class="tradeoff-box con">
           <strong>Weaknesses</strong>
-          Highest complexity — more states to understand. "Keep sorted" concept may be unfamiliar. Sort indicator on project headers adds visual noise. Risk of over-engineering for a niche need. Users might not discover the toggle.
+          Entries can't be reordered while a sort is active — must switch to Manual first. The distinction between "sorted view" and "manual order" may not be obvious to all users. Sort indicators on project headers add visual noise.
         </div>
       </div>
     </div>
@@ -751,9 +746,8 @@ function doOneShot(type) {
   document.querySelectorAll('#os-entries .entry-row').forEach(r => r.classList.add('just-sorted'));
 }
 
-// === AUTO-SORT TOGGLE ===
+// === SORT AS LENS ===
 let asSortType = 'manual';
-let asKeepSorted = false;
 let asData = [...ENTRIES];
 let asManualOrder = [...ENTRIES]; // preserved manual order to restore when sort is removed
 
@@ -777,16 +771,11 @@ function captureManualOrder() {
 function setAutoSort(type) {
   closeAllMenus();
   const btn = document.getElementById('as-sort-btn');
-  const toggleRow = document.getElementById('as-toggle-row');
 
-  // If leaving a sort and going back to manual, restore saved manual order
   if (type === 'manual') {
     asSortType = type;
     btn.classList.remove('active');
     btn.innerHTML = '<span class="icon">↕</span> Sort: Manual';
-    toggleRow.style.display = 'none';
-    asKeepSorted = false;
-    document.getElementById('as-toggle').classList.remove('on');
     asData = [...asManualOrder];
     renderEntries('as-entries', asData, { dragEnabled: true });
   } else {
@@ -798,16 +787,8 @@ function setAutoSort(type) {
     const labels = { 'hours-desc': 'Hours ↓', 'hours-asc': 'Hours ↑', status: 'Status', alpha: 'A→Z' };
     btn.classList.add('active');
     btn.innerHTML = `<span class="icon">↕</span> Sort: ${labels[type]}`;
-    toggleRow.style.display = '';
     asData = sortEntriesWithinProjects(asManualOrder, type);
-
-    if (asKeepSorted) {
-      const badges = { 'hours-desc': '↓ hours (live)', 'hours-asc': '↑ hours (live)', status: '↓ status (live)', alpha: '↓ A-Z (live)' };
-      renderEntries('as-entries', asData, { dragEnabled: false, sortBadge: badges[type] });
-    } else {
-      renderEntries('as-entries', asData, { dragEnabled: false });
-      document.querySelectorAll('#as-entries .entry-row').forEach(r => r.classList.add('just-sorted'));
-    }
+    renderEntries('as-entries', asData, { dragEnabled: false });
   }
 
   // Update menu
@@ -823,19 +804,6 @@ function setAutoSort(type) {
       item.textContent = item.textContent + ' ✓';
     }
   });
-}
-
-function toggleKeepSorted(e) {
-  e.stopPropagation();
-  asKeepSorted = !asKeepSorted;
-  const toggle = document.getElementById('as-toggle');
-  const label = document.getElementById('as-toggle-label');
-  toggle.classList.toggle('on', asKeepSorted);
-  label.textContent = asKeepSorted ? 'Keep sorted — entries re-sort on edit' : 'Keep sorted';
-
-  if (asSortType !== 'manual') {
-    setAutoSort(asSortType);
-  }
 }
 
 // === Init ===
