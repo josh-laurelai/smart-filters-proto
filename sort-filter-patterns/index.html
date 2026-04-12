@@ -591,6 +591,7 @@ function setupEntryDrag(container) {
   container.querySelectorAll('.entry-row[draggable="true"]').forEach(row => {
     row.addEventListener('dragstart', e => {
       if (e.target !== row) return;
+      e.stopPropagation(); // prevent project-group handler from cancelling this drag
       dragSrcRow = row;
       row.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
