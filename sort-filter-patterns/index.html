@@ -394,8 +394,6 @@
               <span class="icon">↕</span> Sort: Hours ↓
             </button>
             <div class="sort-menu" id="cur-sort-menu">
-              <div class="sort-menu-item" onclick="setCurSort('manual')">Manual</div>
-              <div class="sort-menu-divider"></div>
               <div class="sort-menu-item active" onclick="setCurSort('hours-desc')">Hours (high → low) ✓</div>
               <div class="sort-menu-item" onclick="setCurSort('hours-asc')">Hours (low → high)</div>
               <div class="sort-menu-item" onclick="setCurSort('status')">By Status</div>
@@ -404,10 +402,6 @@
           </div>
           <button class="btn"><span class="icon">⊕</span> Create Entry</button>
         </div>
-      </div>
-
-      <div class="inline-note">
-        <span style="color:var(--warning);">⚠</span> Sort is always active — editing an entry's hours will cause it to move to its new sorted position.
       </div>
 
       <div id="cur-entries"></div>
@@ -711,7 +705,7 @@ let curData = [...ENTRIES];
 
 function initCurrent() {
   curData = sortEntriesWithinProjects(ENTRIES, curSortType);
-  renderEntries('cur-entries', curData, { dragEnabled: false, sortBadge: '↓ hours' });
+  renderEntries('cur-entries', curData, { dragEnabled: false });
 }
 
 function setCurSort(type) {
@@ -719,19 +713,11 @@ function setCurSort(type) {
   curSortType = type;
   const btn = document.getElementById('cur-sort-btn');
 
-  if (type === 'manual') {
-    btn.classList.remove('active');
-    btn.innerHTML = '<span class="icon">↕</span> Sort: Manual';
-    curData = [...ENTRIES];
-    renderEntries('cur-entries', curData, { dragEnabled: true });
-  } else {
-    btn.classList.add('active');
-    const labels = { 'hours-desc': 'Hours ↓', 'hours-asc': 'Hours ↑', status: 'Status', alpha: 'A→Z' };
-    btn.innerHTML = `<span class="icon">↕</span> Sort: ${labels[type]}`;
-    curData = sortEntriesWithinProjects(ENTRIES, type);
-    const badges = { 'hours-desc': '↓ hours', 'hours-asc': '↑ hours', status: '↓ status', alpha: '↓ A-Z' };
-    renderEntries('cur-entries', curData, { dragEnabled: false, sortBadge: badges[type] });
-  }
+  btn.classList.add('active');
+  const labels = { 'hours-desc': 'Hours ↓', 'hours-asc': 'Hours ↑', status: 'Status', alpha: 'A→Z' };
+  btn.innerHTML = `<span class="icon">↕</span> Sort: ${labels[type]}`;
+  curData = sortEntriesWithinProjects(ENTRIES, type);
+  renderEntries('cur-entries', curData, { dragEnabled: false });
 
   // Update menu checkmarks
   document.querySelectorAll('#cur-sort-menu .sort-menu-item').forEach(item => {
@@ -739,7 +725,7 @@ function setCurSort(type) {
     item.classList.remove('active');
   });
   document.querySelectorAll('#cur-sort-menu .sort-menu-item').forEach(item => {
-    const map = { 'Manual': 'manual', 'Hours (high → low)': 'hours-desc', 'Hours (low → high)': 'hours-asc', 'By Status': 'status', 'Alphabetical': 'alpha' };
+    const map = { 'Hours (high → low)': 'hours-desc', 'Hours (low → high)': 'hours-asc', 'By Status': 'status', 'Alphabetical': 'alpha' };
     const itemType = map[item.textContent.trim()];
     if (itemType === type) {
       item.classList.add('active');
@@ -747,9 +733,6 @@ function setCurSort(type) {
     }
   });
 
-  // Show/hide inline note
-  const note = document.querySelector('#panel-current .inline-note');
-  if (note) note.style.display = type === 'manual' ? 'none' : '';
 }
 
 // === ONE-SHOT SORT ===
