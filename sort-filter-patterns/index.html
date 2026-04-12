@@ -786,7 +786,7 @@ function setAutoSort(type) {
       const badges = { 'hours-desc': '↓ hours (live)', 'hours-asc': '↑ hours (live)', status: '↓ status (live)', alpha: '↓ A-Z (live)' };
       renderEntries('as-entries', asData, { dragEnabled: false, sortBadge: badges[type] });
     } else {
-      renderEntries('as-entries', asData, { dragEnabled: true });
+      renderEntries('as-entries', asData, { dragEnabled: false });
       document.querySelectorAll('#as-entries .entry-row').forEach(r => r.classList.add('just-sorted'));
     }
   }
