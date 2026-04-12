@@ -56,27 +56,17 @@
   /* === PANELS === */
   .panel { display: none; }
   .panel.active { display: block; }
-
-  .panel-header {
-    max-width: 900px; margin: 0 auto; padding: 32px 32px 0;
-  }
-  .panel-header h2 {
-    font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
-  }
-  .panel-header .subtitle {
-    font-size: 14px; color: var(--text-secondary); margin-top: 4px; max-width: 640px;
-  }
+  .panel-header { max-width: 900px; margin: 0 auto; padding: 32px 32px 0; }
+  .panel-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .panel-header .subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 4px; max-width: 640px; }
   .panel-header .jtbd-tag {
     display: inline-block; font-size: 11px; font-weight: 600;
     padding: 3px 10px; border-radius: 12px;
     background: var(--accent-bg); color: var(--accent); margin-top: 10px;
   }
+  .proto-area { max-width: 900px; margin: 24px auto 0; padding: 0 32px 48px; }
 
-  .proto-area {
-    max-width: 900px; margin: 24px auto 0; padding: 0 32px 48px;
-  }
-
-  /* === TIMESHEET SHELL === */
+  /* === TIMESHEET === */
   .timesheet {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -88,12 +78,11 @@
     padding: 12px 16px; border-bottom: 1px solid var(--border);
     gap: 8px; flex-wrap: wrap;
   }
-  .ts-toolbar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ts-toolbar-left { display: flex; align-items: center; gap: 8px; }
   .ts-toolbar-right { display: flex; align-items: center; gap: 8px; }
   .ts-date { font-size: 15px; font-weight: 700; margin-right: 8px; }
   .ts-count { font-size: 12px; color: var(--text-muted); }
 
-  /* Buttons */
   .btn {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 6px 12px; font-size: 12px; font-weight: 500;
@@ -106,8 +95,10 @@
   .btn .icon { font-size: 14px; line-height: 1; }
 
   /* === PROJECT GROUP === */
-  .project-group { border-bottom: 1px solid var(--border); }
+  .project-group { border-bottom: 1px solid var(--border); transition: background 0.15s; }
   .project-group:last-child { border-bottom: none; }
+  .project-group.dragging { opacity: 0.4; }
+  .project-group.drag-over-project { border-top: 2.5px solid var(--accent); }
   .project-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 16px; background: #fafaf9;
@@ -123,15 +114,25 @@
   }
   .project-hours { font-weight: 600; color: var(--text-secondary); }
 
+  .project-drag-handle {
+    color: var(--text-muted); cursor: grab;
+    font-size: 11px; margin-right: 4px;
+    opacity: 0; transition: opacity 0.15s;
+    user-select: none;
+  }
+  .project-header:hover .project-drag-handle { opacity: 1; }
+  .project-drag-handle.disabled { cursor: default; opacity: 0 !important; }
+
   /* === ENTRY ROW === */
   .entry-row {
     display: flex; align-items: center;
     padding: 10px 16px; border-bottom: 1px solid #f5f5f4;
     font-size: 13px; transition: background 0.15s;
-    position: relative;
   }
   .entry-row:last-child { border-bottom: none; }
   .entry-row:hover { background: #fafaf9; }
+  .entry-row.dragging { opacity: 0.4; background: var(--accent-bg); }
+  .entry-row.drag-over { border-top: 2px solid var(--accent); }
 
   .drag-handle {
     width: 20px; flex-shrink: 0;
@@ -161,16 +162,8 @@
   .status-error { background: var(--error-bg); border: 1.5px solid #fecaca; color: var(--error); }
   .status-ready { background: var(--success-bg); border: 1.5px solid #bbf7d0; color: var(--success); }
 
-  /* Drag states */
-  .entry-row.dragging { opacity: 0.4; background: var(--accent-bg); }
-  .entry-row.drag-over { border-top: 2px solid var(--accent); }
-
-  /* Sort highlight */
   .entry-row.just-sorted { animation: sortFlash 1.2s ease-out; }
-  @keyframes sortFlash {
-    0% { background: #fef3c7; }
-    100% { background: transparent; }
-  }
+  @keyframes sortFlash { 0% { background: #fef3c7; } 100% { background: transparent; } }
 
   /* Sort dropdown */
   .sort-dropdown { position: relative; }
@@ -179,9 +172,13 @@
     margin-top: 4px; background: var(--surface);
     border: 1px solid var(--border); border-radius: var(--radius);
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    min-width: 220px; z-index: 50; padding: 4px;
+    min-width: 240px; z-index: 50; padding: 4px;
   }
   .sort-menu.show { display: block; }
+  .sort-menu-label {
+    padding: 6px 12px 2px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);
+  }
   .sort-menu-item {
     display: flex; align-items: center; justify-content: space-between;
     padding: 8px 12px; font-size: 13px; color: var(--text-secondary);
@@ -191,30 +188,17 @@
   .sort-menu-item.active { color: var(--accent); font-weight: 600; }
   .sort-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
 
-  /* Toggle */
-  .toggle-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 12px; font-size: 12px; color: var(--text-secondary);
+  /* Sort banner */
+  .sort-banner {
+    display: none; align-items: center; justify-content: space-between;
+    padding: 8px 16px; font-size: 12px;
+    background: var(--accent-bg); border-bottom: 1px solid var(--accent-border);
+    color: var(--accent);
   }
-  .toggle {
-    width: 32px; height: 18px; border-radius: 9px;
-    background: #d4d4d4; position: relative; cursor: pointer;
-    transition: background 0.2s; flex-shrink: 0;
-  }
-  .toggle.on { background: var(--accent); }
-  .toggle::after {
-    content: ''; position: absolute; top: 2px; left: 2px;
-    width: 14px; height: 14px; border-radius: 50%; background: white;
-    transition: transform 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-  }
-  .toggle.on::after { transform: translateX(14px); }
-
-  /* Sort indicator badge */
-  .sort-badge {
-    font-size: 10px; font-weight: 600;
-    padding: 2px 7px; border-radius: 4px;
-    background: var(--warning-bg); border: 1px solid var(--warning-border);
-    color: #92400e; white-space: nowrap;
+  .sort-banner.show { display: flex; }
+  .sort-banner a {
+    color: inherit; font-weight: 600; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px;
   }
 
   /* === RESEARCH === */
@@ -224,59 +208,26 @@
     border-radius: var(--radius-lg); padding: 28px; margin-top: 24px;
   }
   .research-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-  .research-card p {
-    font-size: 14px; color: var(--text-secondary);
-    line-height: 1.65; margin-bottom: 12px;
-  }
+  .research-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.65; margin-bottom: 12px; }
   .research-card p:last-child { margin-bottom: 0; }
-
   .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-  .pattern-card {
-    padding: 16px; background: #fafaf9;
-    border-radius: var(--radius); border: 1px solid var(--border);
-  }
+  .pattern-card { padding: 16px; background: #fafaf9; border-radius: var(--radius); border: 1px solid var(--border); }
   .pattern-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
   .pattern-card p { font-size: 12px; margin-bottom: 0; }
-  .pattern-card .product-tag {
-    font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
-    background: #f3f4f6; color: var(--text-muted); margin-bottom: 6px; display: inline-block;
-  }
-
+  .pattern-card .product-tag { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: #f3f4f6; color: var(--text-muted); margin-bottom: 6px; display: inline-block; }
   .jtbd-table { width: 100%; font-size: 13px; border-collapse: collapse; margin-top: 12px; }
-  .jtbd-table th {
-    text-align: left; font-weight: 700; padding: 8px 12px;
-    border-bottom: 2px solid var(--border); font-size: 11px;
-    text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);
-  }
-  .jtbd-table td {
-    padding: 8px 12px; border-bottom: 1px solid var(--border);
-    color: var(--text-secondary); vertical-align: top;
-  }
+  .jtbd-table th { text-align: left; font-weight: 700; padding: 8px 12px; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+  .jtbd-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
   .jtbd-table tr:last-child td { border-bottom: none; }
-
   .tradeoff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-  .tradeoff-box {
-    padding: 12px; border-radius: var(--radius);
-    font-size: 12px; color: var(--text-secondary); line-height: 1.6;
-  }
+  .tradeoff-box { padding: 12px; border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
   .tradeoff-box.pro { background: var(--success-bg); border: 1px solid #bbf7d0; }
   .tradeoff-box.con { background: var(--error-bg); border: 1px solid #fecaca; }
-  .tradeoff-box strong {
-    display: block; margin-bottom: 4px; color: var(--text);
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
-  }
-
+  .tradeoff-box strong { display: block; margin-bottom: 4px; color: var(--text); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
   .ref-list { list-style: none; padding: 0; margin-top: 12px; }
   .ref-list li { font-size: 13px; color: var(--text-secondary); padding: 4px 0; }
   .ref-list li a { color: var(--accent); text-decoration: none; }
   .ref-list li a:hover { text-decoration: underline; }
-
-  /* Inline note */
-  .inline-note {
-    font-size: 11px; color: var(--text-muted); padding: 8px 16px;
-    background: #fafaf9; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 6px;
-  }
 
   @media (max-width: 640px) {
     .panel-header, .proto-area, .research-section { padding-left: 16px; padding-right: 16px; }
@@ -302,13 +253,11 @@
     <p class="subtitle">Research into how products handle sorting in views where users are also creating and editing data. Filtering is a separate exploration — this focuses purely on sort behavior.</p>
   </div>
   <div class="research-section">
-
     <div class="research-card">
       <h3>The Core Problem</h3>
       <p>When a timesheet has an active sort, entries <strong>move around without the user doing anything</strong> — editing an hour value causes the row to teleport, and newly created entries land in unexpected positions. The user's spatial model of "where I put things" is broken.</p>
       <p>This matters most for timesheets because users are constantly switching between authoring (adding/editing entries) and reviewing (scanning for errors, checking totals) <em>in the same view</em>.</p>
     </div>
-
     <div class="research-card">
       <h3>Jobs to Be Done</h3>
       <p>Why would someone sort a timesheet? The answer shapes the solution.</p>
@@ -318,12 +267,11 @@
           <tr><td><strong>Find entries that need fixing</strong></td><td>Surface broken entries — may not need sort at all (see "Needs Attention" exploration, documented separately)</td></tr>
           <tr><td><strong>Check if hours look right</strong></td><td>Momentary reorder by duration — then go back to editing</td></tr>
           <tr><td><strong>Review by status</strong></td><td>See what's released vs pending — a temporary lens, not a permanent arrangement</td></tr>
-          <tr><td><strong>Organize my way</strong></td><td>Manual drag-drop to arrange entries in the order that makes sense to me</td></tr>
+          <tr><td><strong>Organize my way</strong></td><td>Manual drag-drop to arrange entries and projects in the order that makes sense to me</td></tr>
         </tbody>
       </table>
       <p style="margin-top:16px;">Most of these are <strong>momentary</strong> — the user wants to see a different arrangement briefly, then return to their own order. This is key to choosing between the approaches below.</p>
     </div>
-
     <div class="research-card">
       <h3>How Other Products Handle This</h3>
       <div class="pattern-grid">
@@ -356,15 +304,14 @@
         <li>↗ <a href="https://www.nngroup.com/articles/data-tables/" target="_blank">NN/g — Data Tables: Four Major User Tasks</a></li>
       </ul>
     </div>
-
     <div class="research-card">
       <h3>Three Approaches to Compare</h3>
       <table class="jtbd-table">
         <thead><tr><th>Approach</th><th>Behavior</th><th>Manual Drag-Drop</th></tr></thead>
         <tbody>
           <tr><td><strong>Current Behavior</strong></td><td>Sort persists. Entries re-sort on every edit. No manual ordering.</td><td>Not available</td></tr>
-          <tr><td><strong>Permanent Rearrange</strong></td><td>Sort physically reorders entries once. The new order becomes your order — there's no "sort" to turn off.</td><td>Always available</td></tr>
-          <tr><td><strong>Sort as Lens</strong></td><td>Sort is a temporary view over your manual order. Turn it off and your original arrangement is restored.</td><td>Available when no sort is applied</td></tr>
+          <tr><td><strong>Permanent Rearrange</strong></td><td>Sort physically reorders entries/projects once. The new order becomes your order — there's no "sort" to turn off.</td><td>Always available (projects + entries)</td></tr>
+          <tr><td><strong>Sort as Lens</strong></td><td>Sort is a temporary view over your manual order. Turn it off and your original arrangement is restored.</td><td>Available when no sort is applied (projects + entries)</td></tr>
         </tbody>
       </table>
       <p style="margin-top:16px;"><strong>Note:</strong> The "Needs Attention" concept (surfacing errors inline without sorting) is documented separately — it addresses a different JTBD.</p>
@@ -373,7 +320,7 @@
 </div>
 
 <!-- ======================== -->
-<!-- CURRENT: ALWAYS-ACTIVE   -->
+<!-- CURRENT BEHAVIOR         -->
 <!-- ======================== -->
 <div id="panel-current" class="panel">
   <div class="panel-header">
@@ -394,19 +341,22 @@
               <span class="icon">↕</span> Sort
             </button>
             <div class="sort-menu" id="cur-sort-menu">
+              <div class="sort-menu-label">Entries</div>
               <div class="sort-menu-item" onclick="setCurSort('hours-desc')">Hours (high → low)</div>
               <div class="sort-menu-item" onclick="setCurSort('hours-asc')">Hours (low → high)</div>
               <div class="sort-menu-item" onclick="setCurSort('status')">By Status</div>
               <div class="sort-menu-item" onclick="setCurSort('alpha')">Alphabetical</div>
+              <div class="sort-menu-divider"></div>
+              <div class="sort-menu-label">Projects</div>
+              <div class="sort-menu-item" onclick="setCurSort('proj-hours-desc')">Project Hours (high → low)</div>
+              <div class="sort-menu-item" onclick="setCurSort('proj-alpha')">Project Name (A → Z)</div>
             </div>
           </div>
           <button class="btn"><span class="icon">⊕</span> Create Entry</button>
         </div>
       </div>
-
       <div id="cur-entries"></div>
     </div>
-
     <div class="research-card" style="margin-top:24px;">
       <h3>Tradeoffs</h3>
       <div class="tradeoff-grid">
@@ -416,7 +366,7 @@
         </div>
         <div class="tradeoff-box con">
           <strong>Weaknesses</strong>
-          Entries teleport when edited — spatial instability during authoring. No manual drag-drop ordering while sort is active. Users can't maintain their own preferred order. New entries land wherever the sort puts them, which can be disorienting.
+          Entries teleport when edited — spatial instability during authoring. No manual drag-drop ordering. Users can't maintain their own preferred order. New entries land wherever the sort puts them, which can be disorienting.
         </div>
       </div>
     </div>
@@ -424,12 +374,12 @@
 </div>
 
 <!-- ======================== -->
-<!-- ONE-SHOT SORT            -->
+<!-- PERMANENT REARRANGE      -->
 <!-- ======================== -->
 <div id="panel-oneshot" class="panel">
   <div class="panel-header">
     <h2>Permanent Rearrange</h2>
-    <p class="subtitle">Sort is an action, not a mode. Selecting a sort physically reorders your entries — the new arrangement becomes your manual order. There is no sort to "turn off." Drag-drop is always available.</p>
+    <p class="subtitle">Sort is an action, not a mode. Selecting a sort physically reorders your entries and projects — the new arrangement becomes your manual order. There is no sort to "turn off." Drag-drop is always available for both entries and projects.</p>
     <span class="jtbd-tag">JTBD: "Reorganize my entries, then keep editing"</span>
   </div>
   <div class="proto-area">
@@ -445,25 +395,28 @@
               <span class="icon">↕</span> Sort
             </button>
             <div class="sort-menu" id="os-sort-menu">
+              <div class="sort-menu-label">Entries</div>
               <div class="sort-menu-item" onclick="doOneShot('hours-desc')">Hours (high → low)</div>
               <div class="sort-menu-item" onclick="doOneShot('hours-asc')">Hours (low → high)</div>
               <div class="sort-menu-item" onclick="doOneShot('status')">By Status</div>
               <div class="sort-menu-item" onclick="doOneShot('alpha')">Alphabetical</div>
+              <div class="sort-menu-divider"></div>
+              <div class="sort-menu-label">Projects</div>
+              <div class="sort-menu-item" onclick="doOneShot('proj-hours-desc')">Project Hours (high → low)</div>
+              <div class="sort-menu-item" onclick="doOneShot('proj-alpha')">Project Name (A → Z)</div>
             </div>
           </div>
           <button class="btn"><span class="icon">⊕</span> Create Entry</button>
         </div>
       </div>
-
       <div id="os-entries"></div>
     </div>
-
     <div class="research-card" style="margin-top:24px;">
       <h3>Tradeoffs</h3>
       <div class="tradeoff-grid">
         <div class="tradeoff-box pro">
           <strong>Strengths</strong>
-          Spatial stability — entries never move on their own after the rearrange. Drag-drop always available. No persistent state to manage or communicate. No mode to get stuck in. Simple mental model: "sort = reorganize my list."
+          Spatial stability — entries never move on their own after the rearrange. Drag-drop always available for both entries and projects. No persistent state to manage or communicate. No mode to get stuck in. Simple mental model: "sort = reorganize my list."
         </div>
         <div class="tradeoff-box con">
           <strong>Weaknesses</strong>
@@ -475,12 +428,12 @@
 </div>
 
 <!-- ======================== -->
-<!-- AUTO-SORT TOGGLE         -->
+<!-- SORT AS LENS             -->
 <!-- ======================== -->
 <div id="panel-autosort" class="panel">
   <div class="panel-header">
     <h2>Sort as Lens</h2>
-    <p class="subtitle">Sort is a temporary view layered over your manual order. Apply a sort to see entries reorganized — switch back to Manual to restore your original arrangement. Your manual order is always preserved underneath.</p>
+    <p class="subtitle">Sort is a temporary view layered over your manual order. Apply a sort to see entries and projects reorganized — switch back to Manual to restore your original arrangement. Your manual order is always preserved underneath.</p>
     <span class="jtbd-tag">JTBD: "See my entries in a different order, then go back to my arrangement"</span>
   </div>
   <div class="proto-area">
@@ -496,31 +449,38 @@
               <span class="icon">↕</span> Sort: Manual
             </button>
             <div class="sort-menu" id="as-sort-menu">
-              <div class="sort-menu-item active" onclick="setAutoSort('manual')">Manual ✓</div>
+              <div class="sort-menu-item active" onclick="setLensSort('manual')">Manual ✓</div>
               <div class="sort-menu-divider"></div>
-              <div class="sort-menu-item" onclick="setAutoSort('hours-desc')">Hours (high → low)</div>
-              <div class="sort-menu-item" onclick="setAutoSort('hours-asc')">Hours (low → high)</div>
-              <div class="sort-menu-item" onclick="setAutoSort('status')">By Status</div>
-              <div class="sort-menu-item" onclick="setAutoSort('alpha')">Alphabetical</div>
+              <div class="sort-menu-label">Entries</div>
+              <div class="sort-menu-item" onclick="setLensSort('hours-desc')">Hours (high → low)</div>
+              <div class="sort-menu-item" onclick="setLensSort('hours-asc')">Hours (low → high)</div>
+              <div class="sort-menu-item" onclick="setLensSort('status')">By Status</div>
+              <div class="sort-menu-item" onclick="setLensSort('alpha')">Alphabetical</div>
+              <div class="sort-menu-divider"></div>
+              <div class="sort-menu-label">Projects</div>
+              <div class="sort-menu-item" onclick="setLensSort('proj-hours-desc')">Project Hours (high → low)</div>
+              <div class="sort-menu-item" onclick="setLensSort('proj-alpha')">Project Name (A → Z)</div>
             </div>
           </div>
           <button class="btn"><span class="icon">⊕</span> Create Entry</button>
         </div>
       </div>
-
+      <div class="sort-banner" id="as-banner">
+        <span>Sorted by <strong id="as-banner-label">—</strong> — switch to Manual to restore your order</span>
+        <a onclick="setLensSort('manual')">Back to Manual</a>
+      </div>
       <div id="as-entries"></div>
     </div>
-
     <div class="research-card" style="margin-top:24px;">
       <h3>Tradeoffs</h3>
       <div class="tradeoff-grid">
         <div class="tradeoff-box pro">
           <strong>Strengths</strong>
-          Manual order is never lost — sort is a view, not a destructive action. Users can freely switch between sort views and their own arrangement. Clear mental model: "Manual = my order, everything else = the system's order." Drag-drop available in Manual mode.
+          Manual order is never lost — sort is a view, not a destructive action. Users can freely switch between sort views and their own arrangement. Clear mental model: "Manual = my order, everything else = the system's order." Drag-drop available in Manual mode for both projects and entries.
         </div>
         <div class="tradeoff-box con">
           <strong>Weaknesses</strong>
-          Entries can't be reordered while a sort is active — must switch to Manual first. The distinction between "sorted view" and "manual order" may not be obvious to all users. Sort indicators on project headers add visual noise.
+          Entries can't be reordered while a sort is active — must switch to Manual first. The distinction between "sorted view" and "manual order" may not be obvious to all users.
         </div>
       </div>
     </div>
@@ -528,7 +488,7 @@
 </div>
 
 <script>
-// === Shared data ===
+// === Data ===
 const ENTRIES = [
   { project: 'rad', desc: 'Discuss intelligent onboarding approach with Matthew and Lyndsey from EY Tax Group.', code: 'F151', hours: 1.5, status: 'released', valid: true },
   { project: 'rad', desc: 'Meet with Avery and Lisa to align on Mary Johnson calibration.', code: 'F151', hours: 0.5, status: 'released', valid: true },
@@ -546,20 +506,14 @@ const PROJECTS = {
   strategy: { name: 'Strategy', color: '#8b5cf6', meta: 'Company', hours: 0.4 },
 };
 
-const PROJECT_ORDER = ['rad', 'special', 'meetings', 'strategy'];
+const DEFAULT_PROJECT_ORDER = ['rad', 'special', 'meetings', 'strategy'];
+const statusClass = s => s === 'released' ? 'status-released' : s === 'error' ? 'status-error' : 'status-ready';
+const statusIcon = s => s === 'error' ? '!' : '✓';
 
-function statusClass(s) {
-  return s === 'released' ? 'status-released' : s === 'error' ? 'status-error' : 'status-ready';
-}
-function statusIcon(s) {
-  return s === 'error' ? '!' : '✓';
-}
-
-function renderEntries(containerId, entries, options = {}) {
+// === Rendering ===
+function render(containerId, entries, projectOrder, opts = {}) {
+  const { dragEntries = true, dragProjects = true } = opts;
   const container = document.getElementById(containerId);
-  const { dragEnabled = true, sortBadge = null } = options;
-
-  // Group by project
   const groups = {};
   entries.forEach((e, i) => {
     if (!groups[e.project]) groups[e.project] = [];
@@ -567,45 +521,42 @@ function renderEntries(containerId, entries, options = {}) {
   });
 
   let html = '';
-  PROJECT_ORDER.forEach(pid => {
-    if (!groups[pid]) return;
+  projectOrder.forEach(pid => {
+    if (!groups[pid] && !PROJECTS[pid]) return;
     const p = PROJECTS[pid];
-    html += `<div class="project-group" data-project="${pid}">`;
+    const pDrag = dragProjects ? '' : ' disabled';
+    html += `<div class="project-group" data-project="${pid}" draggable="${dragProjects}">`;
     html += `<div class="project-header">`;
     html += `<span class="project-name">`;
+    html += `<span class="project-drag-handle${pDrag}">⋮⋮</span>`;
     html += `<span style="width:4px;height:20px;background:${p.color};border-radius:2px;display:inline-block;"></span>`;
     html += `${p.name}`;
-    if (sortBadge) html += ` <span class="sort-badge">${sortBadge}</span>`;
     html += `</span>`;
     html += `<span class="project-meta"><span>${p.meta}</span><span class="project-hours">${p.hours}</span></span>`;
     html += `</div>`;
 
-    groups[pid].forEach(e => {
-      const dc = dragEnabled ? '' : ' disabled';
-      html += `<div class="entry-row" draggable="${dragEnabled}" data-idx="${e._idx}">`;
+    (groups[pid] || []).forEach(e => {
+      const dc = dragEntries ? '' : ' disabled';
+      html += `<div class="entry-row" draggable="${dragEntries}" data-idx="${e._idx}">`;
       html += `<span class="drag-handle${dc}">⋮⋮</span>`;
-      html += `<div class="entry-desc">`;
-      html += `<div class="desc-text${e.valid ? '' : ' invalid'}">${e.desc}</div>`;
-      html += `<div class="entry-code">${e.code}</div>`;
-      html += `</div>`;
+      html += `<div class="entry-desc"><div class="desc-text${e.valid ? '' : ' invalid'}">${e.desc}</div><div class="entry-code">${e.code}</div></div>`;
       html += `<span class="entry-hours">${e.hours.toFixed(1)}</span>`;
       html += `<div class="entry-status ${statusClass(e.status)}" title="${e.status}">${statusIcon(e.status)}</div>`;
       html += `</div>`;
     });
-
     html += `</div>`;
   });
   container.innerHTML = html;
 
-  // Wire up drag-drop if enabled
-  if (dragEnabled) {
-    setupDrag(container);
-  }
+  if (dragEntries) setupEntryDrag(container);
+  if (dragProjects) setupProjectDrag(container);
 }
 
-function sortEntries(entries, type) {
+// === Sorting helpers ===
+const statusOrder = { error: 0, ready: 1, released: 2 };
+
+function sortEntriesBy(entries, type) {
   const copy = [...entries];
-  const statusOrder = { error: 0, ready: 1, released: 2 };
   if (type === 'hours-desc') copy.sort((a, b) => b.hours - a.hours);
   else if (type === 'hours-asc') copy.sort((a, b) => a.hours - b.hours);
   else if (type === 'status') copy.sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
@@ -613,30 +564,37 @@ function sortEntries(entries, type) {
   return copy;
 }
 
-function sortEntriesWithinProjects(entries, type) {
-  const groups = {};
-  entries.forEach(e => {
-    if (!groups[e.project]) groups[e.project] = [];
-    groups[e.project].push(e);
-  });
-  const result = [];
-  PROJECT_ORDER.forEach(pid => {
-    if (groups[pid]) {
-      result.push(...sortEntries(groups[pid], type));
-    }
-  });
-  return result;
+function sortEntriesWithinProjects(entries, projOrder, type) {
+  if (!type.startsWith('proj-')) {
+    const groups = {};
+    entries.forEach(e => { if (!groups[e.project]) groups[e.project] = []; groups[e.project].push(e); });
+    const result = [];
+    projOrder.forEach(pid => { if (groups[pid]) result.push(...sortEntriesBy(groups[pid], type)); });
+    return result;
+  }
+  return entries; // project sorts don't change entry order within groups
 }
 
-// === Drag & Drop ===
+function sortProjectOrder(projOrder, type) {
+  const copy = [...projOrder];
+  if (type === 'proj-hours-desc') copy.sort((a, b) => PROJECTS[b].hours - PROJECTS[a].hours);
+  else if (type === 'proj-alpha') copy.sort((a, b) => PROJECTS[a].name.localeCompare(PROJECTS[b].name));
+  return copy;
+}
+
+function isProjectSort(type) { return type && type.startsWith('proj-'); }
+function isEntrySort(type) { return type && !type.startsWith('proj-') && type !== 'manual' && type !== 'default'; }
+
+// === Drag: Entries ===
 let dragSrcRow = null;
-function setupDrag(container) {
-  const rows = container.querySelectorAll('.entry-row[draggable="true"]');
-  rows.forEach(row => {
+function setupEntryDrag(container) {
+  container.querySelectorAll('.entry-row[draggable="true"]').forEach(row => {
     row.addEventListener('dragstart', e => {
+      if (e.target !== row) return;
       dragSrcRow = row;
       row.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', 'entry');
     });
     row.addEventListener('dragend', () => {
       row.classList.remove('dragging');
@@ -644,25 +602,22 @@ function setupDrag(container) {
       dragSrcRow = null;
     });
     row.addEventListener('dragover', e => {
+      if (!dragSrcRow) return;
       e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      // Only allow within same project group
-      if (dragSrcRow && row !== dragSrcRow && row.closest('.project-group') === dragSrcRow.closest('.project-group')) {
+      e.stopPropagation();
+      if (row !== dragSrcRow && row.closest('.project-group') === dragSrcRow.closest('.project-group')) {
         row.classList.add('drag-over');
       }
     });
-    row.addEventListener('dragleave', () => {
-      row.classList.remove('drag-over');
-    });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
     row.addEventListener('drop', e => {
       e.preventDefault();
+      e.stopPropagation();
       row.classList.remove('drag-over');
       if (dragSrcRow && row !== dragSrcRow && row.closest('.project-group') === dragSrcRow.closest('.project-group')) {
         const parent = row.parentNode;
         const allRows = [...parent.querySelectorAll('.entry-row')];
-        const srcIdx = allRows.indexOf(dragSrcRow);
-        const tgtIdx = allRows.indexOf(row);
-        if (srcIdx < tgtIdx) {
+        if (allRows.indexOf(dragSrcRow) < allRows.indexOf(row)) {
           parent.insertBefore(dragSrcRow, row.nextSibling);
         } else {
           parent.insertBefore(dragSrcRow, row);
@@ -672,7 +627,50 @@ function setupDrag(container) {
   });
 }
 
-// === Tab nav ===
+// === Drag: Projects ===
+let dragSrcProject = null;
+function setupProjectDrag(container) {
+  container.querySelectorAll('.project-group[draggable="true"]').forEach(group => {
+    const handle = group.querySelector('.project-drag-handle');
+    // Only start drag from the handle
+    group.addEventListener('dragstart', e => {
+      if (!handle.contains(e.target) && e.target !== handle) { e.preventDefault(); return; }
+      dragSrcProject = group;
+      group.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', 'project');
+    });
+    group.addEventListener('dragend', () => {
+      group.classList.remove('dragging');
+      container.querySelectorAll('.drag-over-project').forEach(g => g.classList.remove('drag-over-project'));
+      dragSrcProject = null;
+    });
+    group.querySelector('.project-header').addEventListener('dragover', e => {
+      if (!dragSrcProject) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (group !== dragSrcProject) group.classList.add('drag-over-project');
+    });
+    group.querySelector('.project-header').addEventListener('dragleave', () => {
+      group.classList.remove('drag-over-project');
+    });
+    group.querySelector('.project-header').addEventListener('drop', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      group.classList.remove('drag-over-project');
+      if (dragSrcProject && group !== dragSrcProject) {
+        const allGroups = [...container.querySelectorAll('.project-group')];
+        if (allGroups.indexOf(dragSrcProject) < allGroups.indexOf(group)) {
+          container.insertBefore(dragSrcProject, group.nextSibling);
+        } else {
+          container.insertBefore(dragSrcProject, group);
+        }
+      }
+    });
+  });
+}
+
+// === Nav ===
 function showPanel(id, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -680,136 +678,114 @@ function showPanel(id, btn) {
   btn.classList.add('active');
   closeAllMenus();
 }
-
 function toggleMenu(id) {
-  const menu = document.getElementById(id);
-  const wasOpen = menu.classList.contains('show');
+  const m = document.getElementById(id);
+  const wasOpen = m.classList.contains('show');
   closeAllMenus();
-  if (!wasOpen) menu.classList.add('show');
+  if (!wasOpen) m.classList.add('show');
 }
-function closeAllMenus() {
-  document.querySelectorAll('.sort-menu').forEach(m => m.classList.remove('show'));
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.sort-dropdown')) closeAllMenus();
-});
+function closeAllMenus() { document.querySelectorAll('.sort-menu').forEach(m => m.classList.remove('show')); }
+document.addEventListener('click', e => { if (!e.target.closest('.sort-dropdown')) closeAllMenus(); });
 
-// === CURRENT: Always-active ===
-let curSortType = 'default';
-let curData = [...ENTRIES];
-
-function initCurrent() {
-  curData = [...ENTRIES];
-  renderEntries('cur-entries', curData, { dragEnabled: false });
+function updateMenuChecks(menuId, activeType, typeMap) {
+  document.querySelectorAll(`#${menuId} .sort-menu-item`).forEach(item => {
+    item.textContent = item.textContent.replace(' ✓', '');
+    item.classList.remove('active');
+    const t = typeMap[item.textContent.trim()];
+    if (t === activeType) { item.classList.add('active'); item.textContent += ' ✓'; }
+  });
 }
+
+const SORT_TYPE_MAP = {
+  'Manual': 'manual',
+  'Hours (high → low)': 'hours-desc', 'Hours (low → high)': 'hours-asc',
+  'By Status': 'status', 'Alphabetical': 'alpha',
+  'Project Hours (high → low)': 'proj-hours-desc', 'Project Name (A → Z)': 'proj-alpha'
+};
+const SORT_LABELS = {
+  'hours-desc': 'Hours ↓', 'hours-asc': 'Hours ↑', 'status': 'Status', 'alpha': 'A→Z',
+  'proj-hours-desc': 'Project Hours ↓', 'proj-alpha': 'Projects A→Z'
+};
+
+// === CURRENT ===
+let curProjectOrder = [...DEFAULT_PROJECT_ORDER];
+function initCurrent() { render('cur-entries', ENTRIES, DEFAULT_PROJECT_ORDER, { dragEntries: false, dragProjects: false }); }
 
 function setCurSort(type) {
   closeAllMenus();
-  curSortType = type;
   const btn = document.getElementById('cur-sort-btn');
-
   btn.classList.add('active');
-  const labels = { 'hours-desc': 'Hours ↓', 'hours-asc': 'Hours ↑', status: 'Status', alpha: 'A→Z' };
-  btn.innerHTML = `<span class="icon">↕</span> Sort: ${labels[type]}`;
-  curData = sortEntriesWithinProjects(ENTRIES, type);
-  renderEntries('cur-entries', curData, { dragEnabled: false });
-
-  // Update menu checkmarks
-  document.querySelectorAll('#cur-sort-menu .sort-menu-item').forEach(item => {
-    item.textContent = item.textContent.replace(' ✓', '');
-    item.classList.remove('active');
-  });
-  document.querySelectorAll('#cur-sort-menu .sort-menu-item').forEach(item => {
-    const map = { 'Hours (high → low)': 'hours-desc', 'Hours (low → high)': 'hours-asc', 'By Status': 'status', 'Alphabetical': 'alpha' };
-    const itemType = map[item.textContent.trim()];
-    if (itemType === type) {
-      item.classList.add('active');
-      item.textContent = item.textContent + ' ✓';
-    }
-  });
-
+  btn.innerHTML = `<span class="icon">↕</span> Sort: ${SORT_LABELS[type]}`;
+  curProjectOrder = isProjectSort(type) ? sortProjectOrder(DEFAULT_PROJECT_ORDER, type) : [...DEFAULT_PROJECT_ORDER];
+  const entries = isEntrySort(type) ? sortEntriesWithinProjects(ENTRIES, curProjectOrder, type) : [...ENTRIES];
+  render('cur-entries', entries, curProjectOrder, { dragEntries: false, dragProjects: false });
+  updateMenuChecks('cur-sort-menu', type, SORT_TYPE_MAP);
 }
 
-// === ONE-SHOT SORT ===
-let osData = [...ENTRIES];
-
-function initOneShot() {
-  osData = [...ENTRIES];
-  renderEntries('os-entries', osData, { dragEnabled: true });
-}
+// === PERMANENT REARRANGE ===
+let osProjectOrder = [...DEFAULT_PROJECT_ORDER];
+function initOneShot() { render('os-entries', ENTRIES, DEFAULT_PROJECT_ORDER, { dragEntries: true, dragProjects: true }); }
 
 function doOneShot(type) {
   closeAllMenus();
-  osData = sortEntriesWithinProjects(ENTRIES, type);
-  renderEntries('os-entries', osData, { dragEnabled: true });
-  // Flash sorted rows
+  if (isProjectSort(type)) osProjectOrder = sortProjectOrder(osProjectOrder, type);
+  const entries = isEntrySort(type) ? sortEntriesWithinProjects(ENTRIES, osProjectOrder, type) : [...ENTRIES];
+  render('os-entries', entries, osProjectOrder, { dragEntries: true, dragProjects: true });
   document.querySelectorAll('#os-entries .entry-row').forEach(r => r.classList.add('just-sorted'));
 }
 
 // === SORT AS LENS ===
-let asSortType = 'manual';
-let asData = [...ENTRIES];
-let asManualOrder = [...ENTRIES]; // preserved manual order to restore when sort is removed
+let lsSortType = 'manual';
+let lsManualOrder = [...ENTRIES];
+let lsManualProjectOrder = [...DEFAULT_PROJECT_ORDER];
 
-function initAutoSort() {
-  asData = [...ENTRIES];
-  asManualOrder = [...ENTRIES];
-  renderEntries('as-entries', asData, { dragEnabled: true });
-}
+function initLens() { render('as-entries', ENTRIES, DEFAULT_PROJECT_ORDER, { dragEntries: true, dragProjects: true }); }
 
-// Capture current DOM order as the manual order (after drag-drop reordering)
-function captureManualOrder() {
+function captureLensManualOrder() {
+  // Capture entry order from DOM
   const rows = document.querySelectorAll('#as-entries .entry-row');
   const newOrder = [];
   rows.forEach(row => {
     const idx = parseInt(row.getAttribute('data-idx'));
     if (!isNaN(idx)) newOrder.push(ENTRIES[idx]);
   });
-  if (newOrder.length === ENTRIES.length) asManualOrder = newOrder;
+  if (newOrder.length === ENTRIES.length) lsManualOrder = newOrder;
+  // Capture project order from DOM
+  const groups = document.querySelectorAll('#as-entries .project-group');
+  lsManualProjectOrder = [...groups].map(g => g.dataset.project).filter(Boolean);
 }
 
-function setAutoSort(type) {
+function setLensSort(type) {
   closeAllMenus();
   const btn = document.getElementById('as-sort-btn');
+  const banner = document.getElementById('as-banner');
 
   if (type === 'manual') {
-    asSortType = type;
+    lsSortType = 'manual';
     btn.classList.remove('active');
     btn.innerHTML = '<span class="icon">↕</span> Sort: Manual';
-    asData = [...asManualOrder];
-    renderEntries('as-entries', asData, { dragEnabled: true });
+    banner.classList.remove('show');
+    render('as-entries', lsManualOrder, lsManualProjectOrder, { dragEntries: true, dragProjects: true });
   } else {
-    // Save manual order before applying sort (only if currently in manual)
-    if (asSortType === 'manual') {
-      captureManualOrder();
-    }
-    asSortType = type;
-    const labels = { 'hours-desc': 'Hours ↓', 'hours-asc': 'Hours ↑', status: 'Status', alpha: 'A→Z' };
+    if (lsSortType === 'manual') captureLensManualOrder();
+    lsSortType = type;
     btn.classList.add('active');
-    btn.innerHTML = `<span class="icon">↕</span> Sort: ${labels[type]}`;
-    asData = sortEntriesWithinProjects(asManualOrder, type);
-    renderEntries('as-entries', asData, { dragEnabled: false });
+    btn.innerHTML = `<span class="icon">↕</span> Sort: ${SORT_LABELS[type]}`;
+    document.getElementById('as-banner-label').textContent = SORT_LABELS[type];
+    banner.classList.add('show');
+
+    const projOrder = isProjectSort(type) ? sortProjectOrder(lsManualProjectOrder, type) : [...lsManualProjectOrder];
+    const entries = isEntrySort(type) ? sortEntriesWithinProjects(lsManualOrder, projOrder, type) : [...lsManualOrder];
+    render('as-entries', entries, projOrder, { dragEntries: false, dragProjects: false });
   }
 
-  // Update menu
-  document.querySelectorAll('#as-sort-menu .sort-menu-item').forEach(item => {
-    item.textContent = item.textContent.replace(' ✓', '');
-    item.classList.remove('active');
-  });
-  document.querySelectorAll('#as-sort-menu .sort-menu-item').forEach(item => {
-    const map = { 'Manual': 'manual', 'Hours (high → low)': 'hours-desc', 'Hours (low → high)': 'hours-asc', 'By Status': 'status', 'Alphabetical': 'alpha' };
-    const itemType = map[item.textContent.trim()];
-    if (itemType === type) {
-      item.classList.add('active');
-      item.textContent = item.textContent + ' ✓';
-    }
-  });
+  updateMenuChecks('as-sort-menu', type, SORT_TYPE_MAP);
 }
 
 // === Init ===
 initCurrent();
 initOneShot();
-initAutoSort();
+initLens();
 </script>
 
 </body>
