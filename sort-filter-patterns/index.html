@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sort & Filter Patterns — Timesheet</title>
+<style>
+  :root {
+    --bg: #f5f5f4;
+    --surface: #fff;
+    --border: #e5e5e5;
+    --border-strong: #d4d4d4;
+    --text: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #a8a29e;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
+    --accent-border: #bfdbfe;
+    --warning: #f59e0b;
+    --warning-bg: #fffbeb;
+    --warning-border: #fde68a;
+    --error: #ef4444;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --success: #22c55e;
+    --success-bg: #f0fdf4;
+    --released: #a8a29e;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* === NAV === */
+  .top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* === PANELS === */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .panel-header {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 32px 0;
+  }
+  .panel-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .panel-header .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    max-width: 640px;
+  }
+  .panel-header .jtbd-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    margin-top: 10px;
+  }
+
+  .proto-area {
+    max-width: 900px;
+    margin: 24px auto 0;
+    padding: 0 32px 48px;
+  }
+
+  /* === TIMESHEET SHELL === */
+  .timesheet {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .ts-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ts-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ts-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ts-date {
+    font-size: 15px;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  .ts-count {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .btn.active {
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+    color: var(--accent);
+  }
+  .btn .icon { font-size: 14px; line-height: 1; }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { opacity: 0.9; border-color: var(--accent); color: #fff; }
+
+  /* === PROJECT GROUP === */
+  .project-group {
+    border-bottom: 1px solid var(--border);
+  }
+  .project-group:last-child { border-bottom: none; }
+  .project-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #fafaf9;
+    border-bottom: 1px solid var(--border);
+    cursor: default;
+  }
+  .project-header .project-name {
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .project-header .project-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .project-hours {
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* === ENTRY ROW === */
+  .entry-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f5f5f4;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .entry-row:last-child { border-bottom: none; }
+  .entry-row:hover { background: #fafaf9; }
+  .entry-row .drag-handle {
+    width: 16px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    cursor: grab;
+    font-size: 11px;
+    margin-right: 8px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .entry-row:hover .drag-handle { opacity: 1; }
+  .entry-row .drag-handle.disabled {
+    cursor: not-allowed;
+    opacity: 0 !important;
+  }
+  .entry-desc {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+  }
+  .entry-desc.placeholder {
+    color: var(--error);
+    font-style: italic;
+  }
+  .entry-code {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .entry-hours {
+    width: 56px;
+    text-align: right;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .entry-status {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+  .status-released { background: #e7e5e4; color: #78716c; }
+  .status-error { background: var(--error-bg); border: 1.5px solid var(--error-border); color: var(--error); }
+  .status-pending { background: var(--warning-bg); border: 1.5px solid var(--warning-border); color: var(--warning); }
+  .status-ready { background: var(--success-bg); border: 1.5px solid #bbf7d0; color: var(--success); }
+
+  /* === VARIANT-SPECIFIC === */
+
+  /* Banner */
+  .filter-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    font-size: 12px;
+    gap: 8px;
+  }
+  .filter-banner.info {
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--accent-border);
+    color: var(--accent);
+  }
+  .filter-banner.warn {
+    background: var(--warning-bg);
+    border-bottom: 1px solid var(--warning-border);
+    color: #92400e;
+  }
+  .filter-banner a {
+    color: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Sort indicator on column */
+  .sort-indicator {
+    background: var(--warning-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #92400e;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  /* Auto-sort toggle */
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .toggle {
+    width: 32px;
+    height: 18px;
+    border-radius: 9px;
+    background: #d4d4d4;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .toggle.on::after { transform: translateX(14px); }
+
+  /* Attention dots */
+  .attention-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .attention-dot.error { background: var(--error); }
+  .attention-dot.warning { background: var(--warning); }
+
+  /* Needs attention section */
+  .needs-attention-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--error-bg);
+    border-bottom: 1px solid var(--error-border);
+    font-size: 12px;
+    color: #991b1b;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .needs-attention-bar:hover { background: #fee2e2; }
+  .needs-attention-bar .count-badge {
+    background: var(--error);
+    color: white;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .needs-attention-bar .chevron {
+    margin-left: auto;
+    transition: transform 0.2s;
+  }
+  .needs-attention-bar.expanded .chevron {
+    transform: rotate(180deg);
+  }
+
+  .attention-entries {
+    display: none;
+    border-bottom: 2px solid var(--error-border);
+  }
+  .attention-entries.show { display: block; }
+  .attention-entries .entry-row {
+    background: #fff5f5;
+  }
+  .attention-entries .entry-row:hover {
+    background: #fee2e2;
+  }
+
+  /* Quick-fix pill */
+  .quick-fix {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: 4px;
+    color: var(--error);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .quick-fix:hover {
+    background: #fee2e2;
+  }
+
+  /* Filter chips */
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    color: var(--accent);
+  }
+  .filter-chip .remove {
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    opacity: 0.6;
+    margin-left: 2px;
+  }
+  .filter-chip .remove:hover { opacity: 1; }
+
+  /* Dimmed rows (for one-shot sort) */
+  .entry-row.just-sorted {
+    animation: sortHighlight 2s ease-out;
+  }
+  @keyframes sortHighlight {
+    0% { background: #fef3c7; }
+    100% { background: transparent; }
+  }
+
+  /* New entry highlight */
+  .entry-row.new-entry {
+    background: #eff6ff;
+    border-left: 3px solid var(--accent);
+  }
+  .entry-row.new-entry:hover {
+    background: #dbeafe;
+  }
+
+  /* Hidden count bar */
+  .hidden-count-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: #f5f5f4;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .hidden-count-bar a {
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* Sort dropdown */
+  .sort-dropdown {
+    position: relative;
+  }
+  .sort-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    min-width: 200px;
+    z-index: 50;
+    padding: 4px;
+  }
+  .sort-menu.show { display: block; }
+  .sort-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.1s;
+  }
+  .sort-menu-item:hover { background: #f5f5f4; color: var(--text); }
+  .sort-menu-item.active { color: var(--accent); font-weight: 600; }
+  .sort-menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  /* Filter dropdown */
+  .filter-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    min-width: 240px;
+    z-index: 50;
+    padding: 4px;
+  }
+  .filter-menu.show { display: block; }
+  .filter-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .filter-menu-header a {
+    color: var(--accent);
+    text-transform: none;
+    font-weight: 500;
+    letter-spacing: 0;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.1s;
+    color: var(--text-secondary);
+  }
+  .filter-option:hover { background: #f5f5f4; }
+  .filter-option .checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .filter-option.checked .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .filter-option .count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* === RESEARCH PANEL === */
+  .research-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 32px 64px;
+  }
+  .research-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-top: 24px;
+  }
+  .research-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .research-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 12px;
+  }
+  .research-card p:last-child { margin-bottom: 0; }
+  .ref-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 12px;
+  }
+  .ref-list li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 4px 0;
+  }
+  .ref-list li a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .ref-list li a:hover { text-decoration: underline; }
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .pattern-card {
+    padding: 16px;
+    background: #fafaf9;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .pattern-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pattern-card p {
+    font-size: 12px;
+    margin-bottom: 0;
+  }
+  .pattern-card .product-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f3f4f6;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+
+  .jtbd-table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+  .jtbd-table th {
+    text-align: left;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+  .jtbd-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+  .jtbd-table tr:last-child td { border-bottom: none; }
+
+  /* Pros/cons */
+  .tradeoff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .tradeoff-box {
+    padding: 12px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .tradeoff-box.pro {
+    background: var(--success-bg);
+    border: 1px solid #bbf7d0;
+  }
+  .tradeoff-box.con {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+  }
+  .tradeoff-box strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Entry fade out animation */
+  .entry-row.fading {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    transition: all 0.4s ease-out;
+  }
+
+  /* Re-sort pulse */
+  .btn.pulse {
+    animation: btnPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3); }
+    50% { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+  }
+
+  @media (max-width: 640px) {
+    .panel-header, .proto-area, .research-section { padding-left: 16px; padding-right: 16px; }
+    .pattern-grid, .tradeoff-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="top-nav">
+  <button class="nav-tab active" onclick="showPanel('research')">Research</button>
+  <button class="nav-tab" onclick="showPanel('variant-a')">A: Needs Attention</button>
+  <button class="nav-tab" onclick="showPanel('variant-b')">B: One-Shot Sort</button>
+  <button class="nav-tab" onclick="showPanel('variant-c')">C: Auto-Sort Toggle</button>
+</nav>
+
+<!-- ===================== -->
+<!-- RESEARCH PANEL        -->
+<!-- ===================== -->
+<div id="panel-research" class="panel active">
+  <div class="panel-header">
+    <h2>Sort & Filter in Authoring Interfaces</h2>
+    <p class="subtitle">Research into how products handle the tension between data organization (sorting/filtering) and authoring stability (entries staying where you put them).</p>
+  </div>
+
+  <div class="research-section">
+    <div class="research-card">
+      <h3>The Core Problem</h3>
+      <p>When users are <strong>authoring</strong> data (adding/editing timesheet entries), they need spatial stability — "I put it here, it stays here." When users are <strong>reviewing</strong> data (scanning for errors, checking totals), they benefit from sorting and filtering. These two needs conflict when both happen in the same view.</p>
+      <p>The problem is amplified in timesheets because entries can be auto-generated (from timers, calendar events) while the user is actively working in a filtered view. An entry that vanishes after creation — or teleports mid-edit — erodes trust in the interface.</p>
+    </div>
+
+    <div class="research-card">
+      <h3>Jobs to Be Done: Why Sort/Filter a Timesheet?</h3>
+      <p>Before picking a pattern, we need to ask <em>why</em> someone would sort or filter their timesheet. The answer shapes which solution fits.</p>
+      <table class="jtbd-table">
+        <thead>
+          <tr>
+            <th>Job</th>
+            <th>Trigger</th>
+            <th>What They Actually Need</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Fix validation errors</strong> before releasing</td>
+            <td>"I see 2 errors in the filter bar, let me find them"</td>
+            <td>Surface the broken entries — not necessarily re-sort everything</td>
+          </tr>
+          <tr>
+            <td><strong>Review entries by status</strong> (released vs. pending)</td>
+            <td>End-of-day or end-of-week review</td>
+            <td>See what's been released and what hasn't — grouping/filtering</td>
+          </tr>
+          <tr>
+            <td><strong>Find a specific entry</strong> to edit</td>
+            <td>"I need to change the description on that Cahill Gordon entry"</td>
+            <td>Search or scan — often faster than sort/filter</td>
+          </tr>
+          <tr>
+            <td><strong>Check if hours look right</strong></td>
+            <td>"Did I really spend 4 hours on that?"</td>
+            <td>Sort by duration — but only momentarily</td>
+          </tr>
+          <tr>
+            <td><strong>Focus on one project</strong></td>
+            <td>"Let me just look at RAD Research entries"</td>
+            <td>Already handled by project grouping</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:16px;">The dominant job is <strong>"find and fix things that need attention"</strong> — not "permanently re-order my timesheet." This suggests the solution may not be better sorting, but better <em>attention surfacing</em>.</p>
+    </div>
+
+    <div class="research-card">
+      <h3>How Other Products Handle This</h3>
+      <div class="pattern-grid">
+        <div class="pattern-card">
+          <span class="product-tag">Google Sheets / Excel</span>
+          <h4>One-Shot Sort</h4>
+          <p>Sorting is a destructive one-time action — rows rearrange, then the view returns to manual order. No "live sort." Filtering is separate: hides rows without moving anything. Users can toggle filters on/off.</p>
+        </div>
+        <div class="pattern-card">
+          <span class="product-tag">Airtable</span>
+          <h4>Auto-Sort Toggle</h4>
+          <p>"Automatically sort records" toggle. When ON: live-sort, drag-reorder disabled, sorted columns get orange highlight. When OFF: sort applied once, manual reorder available, re-sort on demand.</p>
+        </div>
+        <div class="pattern-card">
+          <span class="product-tag">Linear / Todoist</span>
+          <h4>Manual is Default</h4>
+          <p>"Manual" is an explicit sort option. When any other sort is active, drag-to-reorder is disabled. Clear either/or: your order or the system's order.</p>
+        </div>
+        <div class="pattern-card">
+          <span class="product-tag">Notion / Monday.com</span>
+          <h4>Smart Defaults</h4>
+          <p>New items in a filtered/grouped view inherit the group's values (e.g., creating under "Released" sets status to Released). Prevents the "vanishing new item" problem.</p>
+        </div>
+      </div>
+      <ul class="ref-list" style="margin-top:20px;">
+        <li>↗ <a href="https://support.airtable.com/docs/sorting-records-in-airtable-views" target="_blank">Airtable — Sorting & Record Ordering</a></li>
+        <li>↗ <a href="https://support.google.com/docs/answer/3540681" target="_blank">Google Sheets — Sort & filter your data</a></li>
+        <li>↗ <a href="https://linear.app/docs/display-options" target="_blank">Linear — Display options (sorting & manual ordering)</a></li>
+        <li>↗ <a href="https://www.todoist.com/help/articles/sort-or-group-tasks-in-todoist-WFWD0hrb" target="_blank">Todoist — Sort or group tasks</a></li>
+        <li>↗ <a href="https://www.nngroup.com/articles/data-tables/" target="_blank">NN/g — Data Tables: Four Major User Tasks</a></li>
+        <li>↗ <a href="https://www.pencilandpaper.io/articles/ux-pattern-analysis-enterprise-data-tables" target="_blank">Pencil & Paper — Enterprise Data Table UX Patterns</a></li>
+      </ul>
+    </div>
+
+    <div class="research-card">
+      <h3>Three Variants to Explore</h3>
+      <p>Based on the JTBD analysis and product research, we designed three approaches. Each addresses the core problem differently — click the tabs above to see them live.</p>
+      <table class="jtbd-table">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>Core Idea</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>A: Needs Attention</strong></td>
+            <td>Don't sort — surface problems inline. A "needs attention" bar collects broken entries at the top of each project group without disrupting order.</td>
+            <td>If the primary JTBD is "fix errors before release" and full sort/filter is rarely needed</td>
+          </tr>
+          <tr>
+            <td><strong>B: One-Shot Sort</strong></td>
+            <td>Sort is an action, not a mode. Click sort → entries rearrange → view returns to manual. Filter shows a banner when items are hidden.</td>
+            <td>If users need real sorting occasionally but spatial stability matters more</td>
+          </tr>
+          <tr>
+            <td><strong>C: Auto-Sort Toggle</strong></td>
+            <td>Airtable-style toggle for "keep sorted" with strong visual indicators. When off, sort is one-shot. When on, live-sort with drag disabled.</td>
+            <td>If the vocal minority needs persistent sort and you want maximum flexibility</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- VARIANT A: NEEDS ATTENTION -->
+<!-- ===================== -->
+<div id="panel-variant-a" class="panel">
+  <div class="panel-header">
+    <h2>Variant A: Needs Attention</h2>
+    <p class="subtitle">Instead of sorting to find problems, surface them inline. A collapsible "needs attention" bar appears at the top of each project group when entries have validation errors or missing data — keeping the default order stable.</p>
+    <span class="jtbd-tag">JTBD: "Fix broken entries before I release"</span>
+  </div>
+
+  <div class="proto-area">
+    <div class="timesheet">
+      <div class="ts-toolbar">
+        <div class="ts-toolbar-left">
+          <span class="ts-date">Wednesday, April 8</span>
+          <span class="ts-count">7 entries</span>
+        </div>
+        <div class="ts-toolbar-right">
+          <button class="btn"><span class="icon">🔍</span> Search</button>
+          <button class="btn"><span class="icon">⊕</span> Create Entry</button>
+        </div>
+      </div>
+
+      <!-- Project 1: RAD Research -->
+      <div class="project-group">
+        <div class="project-header">
+          <span class="project-name">
+            <span style="width:4px;height:20px;background:#2563eb;border-radius:2px;display:inline-block;"></span>
+            RAD • Research
+          </span>
+          <span class="project-meta">
+            <span>Laurel Technology</span>
+            <span class="project-hours">2.4</span>
+          </span>
+        </div>
+
+        <!-- Needs attention bar -->
+        <div class="needs-attention-bar" onclick="toggleAttention(this)" id="attn-bar-1">
+          <span class="count-badge">2</span>
+          <span><strong>2 entries need attention</strong> — validation errors, missing data</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="attention-entries" id="attn-entries-1">
+          <div class="entry-row">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div class="placeholder">Worked on stuff</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="quick-fix" title="Entry needs a description">⚠ Missing description</span>
+            <span class="entry-hours">0.0</span>
+            <div class="entry-status status-error" title="Validation error">!</div>
+          </div>
+          <div class="entry-row">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div>Review online professional background and credentials for M. Johnson.</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="quick-fix" title="Hours seem low for this task">⚠ 0.4h — verify hours</span>
+            <span class="entry-hours">0.4</span>
+            <div class="entry-status status-error" title="Validation error">!</div>
+          </div>
+        </div>
+
+        <!-- Normal entries -->
+        <div class="entry-row">
+          <span class="drag-handle">⋮⋮</span>
+          <div class="entry-desc">
+            <div>Discuss intelligent onboarding approach with Matthew and Lyndsey from EY Tax Group.</div>
+            <div class="entry-code">F151</div>
+          </div>
+          <span class="entry-hours">1.5</span>
+          <div class="entry-status status-released" title="Released">✓</div>
+        </div>
+        <div class="entry-row">
+          <span class="drag-handle">⋮⋮</span>
+          <div class="entry-desc">
+            <div>Meet with Avery and Lisa to align on Mary Johnson calibration.</div>
+            <div class="entry-code">F151</div>
+          </div>
+          <span class="entry-hours">0.5</span>
+          <div class="entry-status status-released" title="Released">✓</div>
+        </div>
+      </div>
+
+      <!-- Project 2: Josh's Special Matter -->
+      <div class="project-group">
+        <div class="project-header">
+          <span class="project-name">
+            <span style="width:4px;height:20px;background:#f59e0b;border-radius:2px;display:inline-block;"></span>
+            Josh's Special Matter
+          </span>
+          <span class="project-meta">
+            <span>Temporary Matter</span>
+            <span class="project-hours">0.0</span>
+          </span>
+        </div>
+        <div class="needs-attention-bar" onclick="toggleAttention(this)" id="attn-bar-2">
+          <span class="count-badge">1</span>
+          <span><strong>1 entry needs attention</strong> — validation error</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="attention-entries" id="attn-entries-2">
+          <div class="entry-row">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div class="placeholder">Sadf asdf sadf</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="quick-fix">⚠ Invalid description</span>
+            <span class="entry-hours">0.0</span>
+            <div class="entry-status status-error" title="Validation error">!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 3: Meetings -->
+      <div class="project-group">
+        <div class="project-header">
+          <span class="project-name">
+            <span style="width:4px;height:20px;background:#22c55e;border-radius:2px;display:inline-block;"></span>
+            Meetings
+          </span>
+          <span class="project-meta">
+            <span>Product | Retention</span>
+            <span class="project-hours">2.0</span>
+          </span>
+        </div>
+        <div class="entry-row">
+          <span class="drag-handle">⋮⋮</span>
+          <div class="entry-desc">
+            <div>Participate in firmwide proposal discussion with P. Berdann and Cahill Gordon.</div>
+            <div class="entry-code">F151</div>
+          </div>
+          <span class="entry-hours">2.0</span>
+          <div class="entry-status status-released" title="Released">✓</div>
+        </div>
+      </div>
+
+      <!-- Project 4: Strategy -->
+      <div class="project-group">
+        <div class="project-header">
+          <span class="project-name">
+            <span style="width:4px;height:20px;background:#8b5cf6;border-radius:2px;display:inline-block;"></span>
+            Strategy
+          </span>
+          <span class="project-meta">
+            <span>Company</span>
+            <span class="project-hours">0.4</span>
+          </span>
+        </div>
+        <div class="entry-row">
+          <span class="drag-handle">⋮⋮</span>
+          <div class="entry-desc">
+            <div>Prepare pricing proposal draft for Cahill Gordon & Reindel collaboration project.</div>
+            <div class="entry-code">F151</div>
+          </div>
+          <span class="entry-hours">0.4</span>
+          <div class="entry-status status-ready" title="Ready to release">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tradeoffs -->
+    <div class="research-card" style="margin-top:24px;">
+      <h3>Tradeoffs</h3>
+      <div class="tradeoff-grid">
+        <div class="tradeoff-box pro">
+          <strong>Strengths</strong>
+          Directly addresses the #1 JTBD (fix errors before release). No spatial disruption — entries stay where they are. Zero learning curve. The attention bar doubles as a progress indicator ("0 entries need attention" = you're done). Works within existing project grouping.
+        </div>
+        <div class="tradeoff-box con">
+          <strong>Weaknesses</strong>
+          Doesn't address less common JTBDs (sort by hours, filter by status). The "needs attention" concept needs a clear definition — what counts? Only works well when the system can identify problems automatically. Vocal power users who want full sort/filter won't get it here.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- VARIANT B: ONE-SHOT SORT -->
+<!-- ===================== -->
+<div id="panel-variant-b" class="panel">
+  <div class="panel-header">
+    <h2>Variant B: One-Shot Sort</h2>
+    <p class="subtitle">Sort is an action, not a persistent mode. Click "Sort" → entries rearrange once → the view returns to manual ordering. Filters show a visible banner with a count of hidden items and a clear "show all" escape hatch.</p>
+    <span class="jtbd-tag">JTBD: "Temporarily reorder to review, then go back to editing"</span>
+  </div>
+
+  <div class="proto-area">
+    <div class="timesheet" id="ts-variant-b">
+      <div class="ts-toolbar">
+        <div class="ts-toolbar-left">
+          <span class="ts-date">Wednesday, April 8</span>
+          <span class="ts-count" id="b-entry-count">7 entries</span>
+        </div>
+        <div class="ts-toolbar-right">
+          <!-- Filter button -->
+          <div style="position:relative;" id="b-filter-wrap">
+            <button class="btn" id="b-filter-btn" onclick="toggleBFilter()">
+              <span class="icon">▽</span> Filter
+            </button>
+            <div class="filter-menu" id="b-filter-menu">
+              <div class="filter-menu-header">
+                <span>Filter entries</span>
+                <a onclick="clearBFilters()">Clear</a>
+              </div>
+              <div class="filter-option" onclick="toggleBFilterOption(this, 'error')">
+                <span class="checkbox"></span>
+                <span>Validation Errors</span>
+                <span class="count">2</span>
+              </div>
+              <div class="filter-option" onclick="toggleBFilterOption(this, 'released')">
+                <span class="checkbox"></span>
+                <span>Released</span>
+                <span class="count">5</span>
+              </div>
+              <div class="filter-option" onclick="toggleBFilterOption(this, 'pending')">
+                <span class="checkbox"></span>
+                <span>Pending</span>
+                <span class="count">0</span>
+              </div>
+              <div class="filter-option" onclick="toggleBFilterOption(this, 'ready')">
+                <span class="checkbox"></span>
+                <span>Ready to Release</span>
+                <span class="count">1</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sort dropdown -->
+          <div class="sort-dropdown" id="b-sort-wrap">
+            <button class="btn" id="b-sort-btn" onclick="toggleBSort()">
+              <span class="icon">↕</span> Sort
+            </button>
+            <div class="sort-menu" id="b-sort-menu">
+              <div class="sort-menu-item active" onclick="applyBSort('default')">Default Order ✓</div>
+              <div class="sort-menu-item" onclick="applyBSort('hours-desc')">Hours (high → low)</div>
+              <div class="sort-menu-item" onclick="applyBSort('hours-asc')">Hours (low → high)</div>
+              <div class="sort-menu-divider"></div>
+              <div class="sort-menu-item" onclick="applyBSort('status')">By Status</div>
+              <div class="sort-menu-item" onclick="applyBSort('alpha')">Alphabetical</div>
+            </div>
+          </div>
+
+          <button class="btn"><span class="icon">⊕</span> Create Entry</button>
+        </div>
+      </div>
+
+      <!-- Sort applied banner (hidden by default) -->
+      <div class="filter-banner warn" id="b-sort-banner" style="display:none;">
+        <span>↕ Sorted by <strong id="b-sort-label">hours</strong> — this is a snapshot, not live. Edit freely.</span>
+        <a onclick="resetBSort()">Reset to default order</a>
+      </div>
+
+      <!-- Filter applied banner (hidden by default) -->
+      <div class="filter-banner info" id="b-filter-banner" style="display:none;">
+        <span>
+          <span id="b-filter-chips"></span>
+          <span id="b-hidden-count"></span>
+        </span>
+        <a onclick="clearBFilters()">Show all</a>
+      </div>
+
+      <!-- All entries in one flat list for this variant (sorted within project groups) -->
+      <div id="b-entries">
+        <div class="project-group" data-project="rad">
+          <div class="project-header">
+            <span class="project-name">
+              <span style="width:4px;height:20px;background:#2563eb;border-radius:2px;display:inline-block;"></span>
+              RAD • Research
+            </span>
+            <span class="project-meta">
+              <span>Laurel Technology</span>
+              <span class="project-hours">2.4</span>
+            </span>
+          </div>
+          <div class="entry-row" data-hours="1.5" data-status="released" data-desc="Discuss intelligent onboarding approach with Matthew and Lyndsey from EY Tax Group.">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div>Discuss intelligent onboarding approach with Matthew and Lyndsey from EY Tax Group.</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="entry-hours">1.5</span>
+            <div class="entry-status status-released" title="Released">✓</div>
+          </div>
+          <div class="entry-row" data-hours="0.5" data-status="released" data-desc="Meet with Avery and Lisa to align on Mary Johnson calibration.">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div>Meet with Avery and Lisa to align on Mary Johnson calibration.</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="entry-hours">0.5</span>
+            <div class="entry-status status-released" title="Released">✓</div>
+          </div>
+          <div class="entry-row" data-hours="0.4" data-status="error" data-desc="Review online professional background and credentials for M. Johnson.">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div>Review online professional background and credentials for M. Johnson.</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="entry-hours">0.4</span>
+            <div class="entry-status status-error" title="Validation error">!</div>
+          </div>
+          <div class="entry-row" data-hours="0.0" data-status="error" data-desc="Worked on stuff">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div style="color:var(--error);font-style:italic;">Worked on stuff</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="entry-hours">0.0</span>
+            <div class="entry-status status-error" title="Validation error">!</div>
+          </div>
+        </div>
+
+        <div class="project-group" data-project="special">
+          <div class="project-header">
+            <span class="project-name">
+              <span style="width:4px;height:20px;background:#f59e0b;border-radius:2px;display:inline-block;"></span>
+              Josh's Special Matter
+            </span>
+            <span class="project-meta">
+              <span>Temporary Matter</span>
+              <span class="project-hours">0.0</span>
+            </span>
+          </div>
+          <div class="entry-row" data-hours="0.0" data-status="error" data-desc="Sadf asdf sadf">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div style="color:var(--error);font-style:italic;">Sadf asdf sadf</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="entry-hours">0.0</span>
+            <div class="entry-status status-error" title="Validation error">!</div>
+          </div>
+        </div>
+
+        <div class="project-group" data-project="meetings">
+          <div class="project-header">
+            <span class="project-name">
+              <span style="width:4px;height:20px;background:#22c55e;border-radius:2px;display:inline-block;"></span>
+              Meetings
+            </span>
+            <span class="project-meta">
+              <span>Product | Retention</span>
+              <span class="project-hours">2.0</span>
+            </span>
+          </div>
+          <div class="entry-row" data-hours="2.0" data-status="released" data-desc="Participate in firmwide proposal discussion with P. Berdann and Cahill Gordon.">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div>Participate in firmwide proposal discussion with P. Berdann and Cahill Gordon.</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="entry-hours">2.0</span>
+            <div class="entry-status status-released" title="Released">✓</div>
+          </div>
+        </div>
+
+        <div class="project-group" data-project="strategy">
+          <div class="project-header">
+            <span class="project-name">
+              <span style="width:4px;height:20px;background:#8b5cf6;border-radius:2px;display:inline-block;"></span>
+              Strategy
+            </span>
+            <span class="project-meta">
+              <span>Company</span>
+              <span class="project-hours">0.4</span>
+            </span>
+          </div>
+          <div class="entry-row" data-hours="0.4" data-status="ready" data-desc="Prepare pricing proposal draft for Cahill Gordon and Reindel collaboration project.">
+            <span class="drag-handle">⋮⋮</span>
+            <div class="entry-desc">
+              <div>Prepare pricing proposal draft for Cahill Gordon & Reindel collaboration project.</div>
+              <div class="entry-code">F151</div>
+            </div>
+            <span class="entry-hours">0.4</span>
+            <div class="entry-status status-ready" title="Ready to release">✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="research-card" style="margin-top:24px;">
+      <h3>Tradeoffs</h3>
+      <div class="tradeoff-grid">
+        <div class="tradeoff-box pro">
+          <strong>Strengths</strong>
+          Familiar mental model (spreadsheet-like). Spatial stability after sort — entries don't keep moving. Clear "sorted" state with easy reset. Filter banner prevents the "where did my entry go?" confusion. Supports all JTBDs (sort by hours, filter by status, etc.).
+        </div>
+        <div class="tradeoff-box con">
+          <strong>Weaknesses</strong>
+          "One-shot sort" is subtly different from what users expect if they come from Airtable/Notion where sorts persist. The sort banner adds visual noise. Users might not realize they can manually reorder after sorting. Requires new entries to appear at top (outside sort order) to avoid confusion.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- VARIANT C: AUTO-SORT TOGGLE -->
+<!-- ===================== -->
+<div id="panel-variant-c" class="panel">
+  <div class="panel-header">
+    <h2>Variant C: Auto-Sort Toggle</h2>
+    <p class="subtitle">Airtable-inspired approach: sort rules can be set, and a "Keep sorted" toggle controls whether sorting is live (entries re-sort as you edit) or manual (sort once, then freely reorder). Strong visual indicators show when auto-sort is active.</p>
+    <span class="jtbd-tag">JTBD: "I want persistent organization of my entries"</span>
+  </div>
+
+  <div class="proto-area">
+    <div class="timesheet">
+      <div class="ts-toolbar">
+        <div class="ts-toolbar-left">
+          <span class="ts-date">Wednesday, April 8</span>
+          <span class="ts-count">7 entries</span>
+        </div>
+        <div class="ts-toolbar-right">
+          <!-- Filter -->
+          <button class="btn active" id="c-filter-btn">
+            <span class="icon">▽</span> Filter
+            <span style="background:var(--accent);color:white;padding:0 5px;border-radius:8px;font-size:10px;font-weight:700;">1</span>
+          </button>
+
+          <!-- Sort with toggle -->
+          <div class="sort-dropdown" id="c-sort-wrap">
+            <button class="btn active" id="c-sort-btn" onclick="toggleCSort()">
+              <span class="icon">↕</span> Sort: Hours ↓
+            </button>
+            <div class="sort-menu" id="c-sort-menu">
+              <div class="sort-menu-item" onclick="closeCSort()">Default Order</div>
+              <div class="sort-menu-item active" onclick="closeCSort()">Hours (high → low) ✓</div>
+              <div class="sort-menu-item" onclick="closeCSort()">Hours (low → high)</div>
+              <div class="sort-menu-divider"></div>
+              <div class="sort-menu-item" onclick="closeCSort()">By Status</div>
+              <div class="sort-menu-item" onclick="closeCSort()">Alphabetical</div>
+              <div class="sort-menu-divider"></div>
+              <div style="padding:8px 12px;">
+                <div class="toggle-container" onclick="toggleAutoSort(event)">
+                  <div class="toggle on" id="c-auto-toggle"></div>
+                  <span id="c-auto-label">Keep sorted — entries re-sort automatically</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn"><span class="icon">⊕</span> Create Entry</button>
+        </div>
+      </div>
+
+      <!-- Active sort/filter indicators -->
+      <div class="filter-banner warn" id="c-autosort-banner">
+        <span>⚡ <strong>Auto-sort active</strong> — entries will move when edited. Drag-reorder is disabled. <span style="opacity:0.7">(Turn off "Keep sorted" in sort menu to reorder manually)</span></span>
+      </div>
+      <div class="filter-banner info">
+        <span>
+          <span class="filter-chip">Status: Validation Errors <span class="remove" onclick="this.closest('.filter-banner').style.display='none'">×</span></span>
+          &nbsp; 4 of 7 entries hidden
+        </span>
+        <a>Show all</a>
+      </div>
+
+      <!-- Sorted entries (showing only error entries due to filter) -->
+      <div class="project-group">
+        <div class="project-header" style="background:#fffbeb;">
+          <span class="project-name">
+            <span style="width:4px;height:20px;background:#2563eb;border-radius:2px;display:inline-block;"></span>
+            RAD • Research
+            <span class="sort-indicator">↓ sorted by hours</span>
+          </span>
+          <span class="project-meta">
+            <span style="font-size:11px;color:var(--text-muted);">2 of 4 shown</span>
+            <span class="project-hours">0.4</span>
+          </span>
+        </div>
+        <div class="entry-row">
+          <span class="drag-handle disabled">⋮⋮</span>
+          <div class="entry-desc">
+            <div>Review online professional background and credentials for M. Johnson.</div>
+            <div class="entry-code">F151</div>
+          </div>
+          <span class="entry-hours">0.4</span>
+          <div class="entry-status status-error" title="Validation error">!</div>
+        </div>
+        <div class="entry-row">
+          <span class="drag-handle disabled">⋮⋮</span>
+          <div class="entry-desc">
+            <div style="color:var(--error);font-style:italic;">Worked on stuff</div>
+            <div class="entry-code">F151</div>
+          </div>
+          <span class="entry-hours">0.0</span>
+          <div class="entry-status status-error" title="Validation error">!</div>
+        </div>
+        <div class="hidden-count-bar">
+          2 released entries hidden by filter · <a>Show all in RAD • Research</a>
+        </div>
+      </div>
+
+      <div class="project-group">
+        <div class="project-header" style="background:#fffbeb;">
+          <span class="project-name">
+            <span style="width:4px;height:20px;background:#f59e0b;border-radius:2px;display:inline-block;"></span>
+            Josh's Special Matter
+            <span class="sort-indicator">↓ sorted by hours</span>
+          </span>
+          <span class="project-meta">
+            <span style="font-size:11px;color:var(--text-muted);">1 of 1 shown</span>
+            <span class="project-hours">0.0</span>
+          </span>
+        </div>
+        <div class="entry-row">
+          <span class="drag-handle disabled">⋮⋮</span>
+          <div class="entry-desc">
+            <div style="color:var(--error);font-style:italic;">Sadf asdf sadf</div>
+            <div class="entry-code">F151</div>
+          </div>
+          <span class="entry-hours">0.0</span>
+          <div class="entry-status status-error" title="Validation error">!</div>
+        </div>
+      </div>
+
+      <!-- Projects with no matching entries -->
+      <div class="hidden-count-bar">
+        2 projects fully hidden by filter (Meetings, Strategy) · <a>Show all</a>
+      </div>
+    </div>
+
+    <div class="research-card" style="margin-top:24px;">
+      <h3>Tradeoffs</h3>
+      <div class="tradeoff-grid">
+        <div class="tradeoff-box pro">
+          <strong>Strengths</strong>
+          Most powerful and flexible option. Satisfies the vocal minority who wants persistent sorting. The toggle makes the tradeoff explicit — users choose between stability and auto-organization. Strong visual indicators (orange highlights, disabled drag handles, banner) prevent confusion. "X of Y shown" per project group prevents the "where did it go?" problem.
+        </div>
+        <div class="tradeoff-box con">
+          <strong>Weaknesses</strong>
+          Highest complexity — more UI surface, more states to understand. The "keep sorted" concept may be foreign to users who haven't used Airtable. Multiple banners (auto-sort + filter) take significant vertical space. Risk of over-engineering for what may be a niche need. Disabled drag handles might feel restrictive.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// === Tab navigation ===
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+  // Close any open menus
+  document.querySelectorAll('.sort-menu, .filter-menu').forEach(m => m.classList.remove('show'));
+}
+
+// === Variant A: Needs Attention ===
+function toggleAttention(bar) {
+  const id = bar.id.replace('attn-bar-', 'attn-entries-');
+  const entries = document.getElementById(id);
+  bar.classList.toggle('expanded');
+  entries.classList.toggle('show');
+}
+
+// === Variant B: One-Shot Sort ===
+let bActiveFilters = new Set();
+let bCurrentSort = 'default';
+
+function toggleBFilter() {
+  const menu = document.getElementById('b-filter-menu');
+  menu.classList.toggle('show');
+  document.getElementById('b-sort-menu').classList.remove('show');
+}
+
+function toggleBSort() {
+  const menu = document.getElementById('b-sort-menu');
+  menu.classList.toggle('show');
+  document.getElementById('b-filter-menu').classList.remove('show');
+}
+
+function toggleBFilterOption(el, status) {
+  el.classList.toggle('checked');
+  if (bActiveFilters.has(status)) {
+    bActiveFilters.delete(status);
+  } else {
+    bActiveFilters.add(status);
+  }
+  applyBFilters();
+}
+
+function clearBFilters() {
+  bActiveFilters.clear();
+  document.querySelectorAll('#b-filter-menu .filter-option').forEach(o => o.classList.remove('checked'));
+  applyBFilters();
+  document.getElementById('b-filter-menu').classList.remove('show');
+}
+
+function applyBFilters() {
+  const banner = document.getElementById('b-filter-banner');
+  const btn = document.getElementById('b-filter-btn');
+  const entries = document.querySelectorAll('#b-entries .entry-row');
+  const groups = document.querySelectorAll('#b-entries .project-group');
+
+  if (bActiveFilters.size === 0) {
+    banner.style.display = 'none';
+    btn.classList.remove('active');
+    entries.forEach(e => e.style.display = '');
+    groups.forEach(g => g.style.display = '');
+    return;
+  }
+
+  btn.classList.add('active');
+  let shown = 0, hidden = 0;
+
+  entries.forEach(e => {
+    const status = e.getAttribute('data-status');
+    if (bActiveFilters.has(status)) {
+      e.style.display = '';
+      shown++;
+    } else {
+      e.style.display = 'none';
+      hidden++;
+    }
+  });
+
+  // Hide empty project groups
+  groups.forEach(g => {
+    const visibleEntries = g.querySelectorAll('.entry-row:not([style*="display: none"])');
+    g.style.display = visibleEntries.length === 0 ? 'none' : '';
+  });
+
+  // Update banner
+  const chipNames = { error: 'Validation Errors', released: 'Released', pending: 'Pending', ready: 'Ready to Release' };
+  const chips = Array.from(bActiveFilters).map(f =>
+    `<span class="filter-chip">${chipNames[f]} <span class="remove" onclick="event.stopPropagation();removeBFilter('${f}')">×</span></span>`
+  ).join(' ');
+  document.getElementById('b-filter-chips').innerHTML = chips;
+  document.getElementById('b-hidden-count').textContent = ` — ${hidden} entries hidden`;
+  banner.style.display = '';
+}
+
+function removeBFilter(status) {
+  bActiveFilters.delete(status);
+  document.querySelectorAll('#b-filter-menu .filter-option').forEach(o => {
+    // crude matching
+    const text = o.textContent.toLowerCase();
+    const map = { error: 'validation', released: 'released', pending: 'pending', ready: 'ready' };
+    if (text.includes(map[status]) && o.classList.contains('checked')) {
+      o.classList.remove('checked');
+    }
+  });
+  applyBFilters();
+}
+
+function applyBSort(type) {
+  bCurrentSort = type;
+  document.getElementById('b-sort-menu').classList.remove('show');
+  const banner = document.getElementById('b-sort-banner');
+  const btn = document.getElementById('b-sort-btn');
+
+  if (type === 'default') {
+    banner.style.display = 'none';
+    btn.classList.remove('active');
+    // Reset to original order (just reload the entries in their original DOM order)
+    const groups = document.querySelectorAll('#b-entries .project-group');
+    groups.forEach(g => {
+      const entries = Array.from(g.querySelectorAll('.entry-row'));
+      // Sort by original data-desc to restore approximate default
+      entries.sort((a, b) => {
+        return parseFloat(b.dataset.hours) - parseFloat(a.dataset.hours);
+      });
+      // Actually for default, we don't re-sort, just remove highlight
+      entries.forEach(e => e.classList.remove('just-sorted'));
+    });
+    // Update menu
+    document.querySelectorAll('#b-sort-menu .sort-menu-item').forEach(item => {
+      item.classList.toggle('active', item.textContent.includes('Default'));
+      item.textContent = item.textContent.replace(' ✓', '');
+      if (item.textContent.includes('Default')) item.textContent += ' ✓';
+    });
+    return;
+  }
+
+  const labels = {
+    'hours-desc': 'hours (high → low)',
+    'hours-asc': 'hours (low → high)',
+    'status': 'status',
+    'alpha': 'alphabetical'
+  };
+  document.getElementById('b-sort-label').textContent = labels[type];
+  banner.style.display = '';
+  btn.classList.add('active');
+
+  // Sort entries within each project group
+  const groups = document.querySelectorAll('#b-entries .project-group');
+  groups.forEach(g => {
+    const entries = Array.from(g.querySelectorAll('.entry-row'));
+    entries.sort((a, b) => {
+      if (type === 'hours-desc') return parseFloat(b.dataset.hours) - parseFloat(a.dataset.hours);
+      if (type === 'hours-asc') return parseFloat(a.dataset.hours) - parseFloat(b.dataset.hours);
+      if (type === 'status') return (a.dataset.status || '').localeCompare(b.dataset.status || '');
+      if (type === 'alpha') return (a.dataset.desc || '').localeCompare(b.dataset.desc || '');
+      return 0;
+    });
+    entries.forEach(e => {
+      e.classList.add('just-sorted');
+      g.appendChild(e);
+    });
+  });
+
+  // Update menu checkmarks
+  document.querySelectorAll('#b-sort-menu .sort-menu-item').forEach(item => {
+    item.textContent = item.textContent.replace(' ✓', '');
+    item.classList.remove('active');
+  });
+}
+
+function resetBSort() {
+  applyBSort('default');
+}
+
+// === Variant C: Auto-Sort Toggle ===
+function toggleCSort() {
+  document.getElementById('c-sort-menu').classList.toggle('show');
+}
+function closeCSort() {
+  document.getElementById('c-sort-menu').classList.remove('show');
+}
+function toggleAutoSort(e) {
+  e.stopPropagation();
+  const toggle = document.getElementById('c-auto-toggle');
+  const label = document.getElementById('c-auto-label');
+  const banner = document.getElementById('c-autosort-banner');
+  toggle.classList.toggle('on');
+  if (toggle.classList.contains('on')) {
+    label.textContent = 'Keep sorted — entries re-sort automatically';
+    banner.style.display = '';
+    // Disable drag handles
+    document.querySelectorAll('#panel-variant-c .drag-handle').forEach(h => h.classList.add('disabled'));
+  } else {
+    label.textContent = 'Keep sorted (off) — drag to reorder manually';
+    banner.style.display = 'none';
+    // Enable drag handles
+    document.querySelectorAll('#panel-variant-c .drag-handle').forEach(h => h.classList.remove('disabled'));
+  }
+}
+
+// Close menus when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#b-filter-wrap')) {
+    document.getElementById('b-filter-menu').classList.remove('show');
+  }
+  if (!e.target.closest('#b-sort-wrap')) {
+    document.getElementById('b-sort-menu').classList.remove('show');
+  }
+  if (!e.target.closest('#c-sort-wrap')) {
+    document.getElementById('c-sort-menu').classList.remove('show');
+  }
+});
+</script>
+
+</body>
+</html>
