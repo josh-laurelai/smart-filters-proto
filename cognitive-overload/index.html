@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Visual Weight Spectrum — Why Design Tradeoffs Are Hard</title>
+<style>
+/* === RESET & BASE === */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8f8f7;
+  color: #1c1917;
+  line-height: 1.6;
+}
+
+/* === LAYOUT === */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.intro {
+  background: #1c1917;
+  color: #fafaf9;
+  padding: 48px 40px 40px;
+}
+.intro h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+.intro p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #d6d3d1;
+  max-width: 720px;
+}
+.intro p + p { margin-top: 12px; }
+.intro strong { color: #fafaf9; }
+
+/* === SLIDER CONTROLS === */
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 20px 40px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 900px;
+}
+.slider-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #78716c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.slider-wrap {
+  flex: 1;
+  position: relative;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #e7e5e4;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #1c1917;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: grab;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #1c1917;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: grab;
+}
+.tick-marks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+  margin-top: 6px;
+}
+.tick {
+  font-size: 11px;
+  color: #a8a29e;
+  text-align: center;
+  width: 80px;
+}
+.tick.active {
+  color: #1c1917;
+  font-weight: 600;
+}
+
+/* === ANNOTATION PANEL === */
+.annotation {
+  padding: 16px 40px 24px;
+  max-width: 800px;
+}
+.annotation-card {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.annotation-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+.annotation-card p {
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+/* === MOCK APP === */
+.mock-app {
+  margin: 0 40px 40px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* App header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e5e5;
+}
+.app-logo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1c1917;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.app-logo svg { flex-shrink: 0; }
+.app-nav {
+  display: flex;
+  gap: 4px;
+}
+.app-nav-item {
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #78716c;
+  border-radius: 6px;
+}
+.app-nav-item.active {
+  color: #1c1917;
+  font-weight: 600;
+  background: #f5f5f4;
+}
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn-primary {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #1c1917;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-secondary {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #57534e;
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Toolbar */
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #fafaf9;
+}
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.toolbar-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.toolbar-subtitle {
+  font-size: 13px;
+  color: #a8a29e;
+}
+.toolbar-right {
+  display: flex;
+  gap: 8px;
+}
+.filter-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #78716c;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Groups */
+.group {
+  position: relative;
+}
+.group + .group {
+  border-top: 1px solid #e5e5e5;
+}
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+}
+.group-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.group-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.group-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1c1917;
+}
+.group-count {
+  font-size: 12px;
+  color: #a8a29e;
+  margin-left: 4px;
+}
+.group-total {
+  font-size: 13px;
+  font-weight: 600;
+  color: #57534e;
+}
+
+/* Color strap — hidden by default, shown at state 1+ */
+.group-strap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0px;
+  opacity: 0;
+}
+
+/* Rows */
+.row {
+  display: grid;
+  grid-template-columns: 28px 1fr 100px 32px 70px 40px;
+  align-items: center;
+  padding: 10px 24px;
+  border-top: 1px solid #f5f5f4;
+  gap: 12px;
+}
+.row:hover { background: #fafaf9; }
+
+/* Checkbox - hidden by default, shown on hover (state 0) */
+.row-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #d4d4d4;
+  opacity: 0;
+}
+.row:hover .row-check { opacity: 1; }
+
+.row-title {
+  font-size: 13px;
+  color: #1c1917;
+}
+.row-assignee {
+  font-size: 12px;
+  color: #78716c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Avatar - gray at minimal */
+.avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+  background: #a8a29e !important;
+}
+
+/* Status - icon only with pale bg at minimal */
+.row-status {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  position: relative;
+}
+.status-label {
+  display: none;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.status-done    { background: #f0fdf4; color: #22c55e; }
+.status-progress { background: #eff6ff; color: #3b82f6; }
+.status-review  { background: #f5f3ff; color: #8b5cf6; }
+.status-todo    { background: #f5f5f4; color: #a8a29e; }
+
+.status-icon { display: inline; }
+
+.row-priority {
+  font-size: 12px;
+  text-align: center;
+  color: #57534e;
+}
+
+/* More button - hidden by default, shown on hover (state 0) */
+.row-more {
+  font-size: 16px;
+  color: #a8a29e;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+}
+.row:hover .row-more { opacity: 1; }
+
+
+/* ================================================
+   STATE 1: SUBTLE
+   - Color strap on side covering whole group
+   - Status gets text label
+   - Checkboxes + more always visible
+   ================================================ */
+.state-1 .group {
+  position: relative;
+}
+.state-1 .group-strap {
+  width: 3px;
+  opacity: 1;
+}
+.state-1 .group-color-dot { display: none; }
+.state-1 .group-header { padding-left: 20px; }
+.state-1 .row { padding-left: 20px; }
+
+/* Status gets label */
+.state-1 .row-status {
+  width: auto;
+  height: auto;
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+}
+.state-1 .status-label { display: inline; }
+.state-1 .row {
+  grid-template-columns: 28px 1fr 100px auto 70px 40px;
+}
+
+/* Checkboxes + more always visible */
+.state-1 .row-check { opacity: 1; }
+.state-1 .row-more { opacity: 1; }
+
+
+/* ================================================
+   STATE 2: MODERATE
+   - Colored header backgrounds (tinted)
+   - Avatar gets color back
+   - Priority gets color
+   - Strap gets thicker
+   ================================================ */
+.state-2 .group-strap {
+  width: 4px;
+  opacity: 1;
+}
+.state-2 .group-color-dot { display: none; }
+.state-2 .group-header { padding-left: 20px; }
+.state-2 .row { padding-left: 20px; }
+.state-2 .group-header[data-color="blue"]   { background: #eff6ff; }
+.state-2 .group-header[data-color="purple"] { background: #f5f3ff; }
+.state-2 .group-header[data-color="green"]  { background: #f0fdf4; }
+.state-2 .group-header[data-color="orange"] { background: #fff7ed; }
+
+/* Status keeps label */
+.state-2 .row-status {
+  width: auto;
+  height: auto;
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.state-2 .status-label { display: inline; }
+.state-2 .row {
+  grid-template-columns: 28px 1fr 100px auto 70px 40px;
+}
+
+/* Avatar gets color */
+.state-2 .avatar { background: var(--avatar-color) !important; }
+
+/* Priority gets color */
+.state-2 .priority-high { color: #dc2626; font-weight: 600; }
+.state-2 .priority-med  { color: #d97706; font-weight: 500; }
+
+/* Checkboxes + more always visible */
+.state-2 .row-check { opacity: 1; }
+.state-2 .row-more { opacity: 1; }
+
+
+/* ================================================
+   STATE 3: HEAVY
+   - Solid color group headers, white text
+   - Bold status badges
+   - Dark toolbar
+   - Priority badges with background
+   - Strap removed (header takes over)
+   ================================================ */
+.state-3 .group-strap { width: 0; opacity: 0; }
+.state-3 .group-color-dot { display: none; }
+.state-3 .group-header { padding: 12px 24px; }
+.state-3 .row { padding-left: 24px; }
+
+.state-3 .group-header[data-color="blue"]   { background: #3b82f6; }
+.state-3 .group-header[data-color="purple"] { background: #8b5cf6; }
+.state-3 .group-header[data-color="green"]  { background: #22c55e; }
+.state-3 .group-header[data-color="orange"] { background: #f97316; }
+.state-3 .group-name { color: #fff; }
+.state-3 .group-count { color: rgba(255,255,255,0.7); }
+.state-3 .group-total { color: #fff; }
+
+.state-3 .row-status {
+  width: auto;
+  height: auto;
+  padding: 3px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 12px;
+}
+.state-3 .status-label { display: inline; }
+.state-3 .status-done    { color: #fff; background: #22c55e; }
+.state-3 .status-progress { color: #fff; background: #3b82f6; }
+.state-3 .status-review  { color: #fff; background: #8b5cf6; }
+.state-3 .status-todo    { color: #fff; background: #78716c; }
+.state-3 .status-icon { filter: brightness(10); }
+.state-3 .row {
+  grid-template-columns: 28px 1fr 100px auto 70px 40px;
+}
+
+.state-3 .priority-high { color: #dc2626; font-weight: 700; }
+.state-3 .priority-med  { color: #d97706; font-weight: 600; }
+.state-3 .priority-low  { color: #57534e; }
+
+.state-3 .app-toolbar { background: #1c1917; }
+.state-3 .toolbar-title { color: #fff; }
+.state-3 .toolbar-subtitle { color: #a8a29e; }
+.state-3 .filter-btn { background: #292524; color: #d6d3d1; border-color: #44403c; }
+
+.state-3 .avatar { background: var(--avatar-color) !important; }
+.state-3 .row-check { opacity: 1; }
+.state-3 .row-more { opacity: 1; }
+
+
+/* ================================================
+   STATE 4: MAXIMUM
+   - Everything screams for attention
+   - Dark app header, colored nav
+   - Blue toolbar
+   - Saturated group headers
+   - Row striping, thick borders
+   - Priority as full color blocks
+   - Status badges with shadows
+   ================================================ */
+.state-4 .group-strap { width: 0; opacity: 0; }
+.state-4 .group-color-dot { display: none; }
+
+.state-4 .app-header { background: #1c1917; }
+.state-4 .app-logo { color: #fff; }
+.state-4 .app-nav-item { color: #a8a29e; }
+.state-4 .app-nav-item.active { color: #fff; background: #f97316; }
+.state-4 .btn-primary { background: #dc2626; }
+.state-4 .btn-secondary { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+
+.state-4 .app-toolbar { background: #1e3a5f; }
+.state-4 .toolbar-title { color: #fff; }
+.state-4 .toolbar-subtitle { color: #93c5fd; }
+.state-4 .filter-btn { background: #2563eb; color: #fff; border-color: #3b82f6; font-weight: 600; }
+
+.state-4 .group-header[data-color="blue"]   { background: #1e40af; }
+.state-4 .group-header[data-color="purple"] { background: #6b21a8; }
+.state-4 .group-header[data-color="green"]  { background: #15803d; }
+.state-4 .group-header[data-color="orange"] { background: #c2410c; }
+.state-4 .group-header { padding: 14px 24px; border-bottom: 3px solid rgba(0,0,0,0.2); }
+.state-4 .group-name { color: #fff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+.state-4 .group-count { color: rgba(255,255,255,0.8); }
+.state-4 .group-total { color: #fde68a; font-size: 14px; }
+
+.state-4 .row { border-top: 1px solid #e5e5e5; padding-left: 24px; }
+.state-4 .row:nth-child(odd of .row) { background: #fafaf9; }
+.state-4 .row-check { opacity: 1; border-color: #3b82f6; border-width: 2px; }
+.state-4 .row-more { opacity: 1; }
+
+.state-4 .row-status {
+  width: auto;
+  height: auto;
+  padding: 3px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+.state-4 .status-label { display: inline; }
+.state-4 .status-done    { color: #fff; background: #16a34a; box-shadow: 0 1px 3px rgba(22,163,106,0.3); }
+.state-4 .status-progress { color: #fff; background: #2563eb; box-shadow: 0 1px 3px rgba(37,99,235,0.3); }
+.state-4 .status-review  { color: #fff; background: #9333ea; box-shadow: 0 1px 3px rgba(147,51,234,0.3); }
+.state-4 .status-todo    { color: #fff; background: #dc2626; box-shadow: 0 1px 3px rgba(220,38,38,0.3); }
+.state-4 .status-icon { filter: brightness(10); }
+.state-4 .row {
+  grid-template-columns: 28px 1fr 100px auto 70px 40px;
+}
+
+.state-4 .priority-high { color: #fff; background: #dc2626; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+.state-4 .priority-med  { color: #fff; background: #d97706; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.state-4 .priority-low  { color: #fff; background: #57534e; padding: 2px 8px; border-radius: 4px; }
+
+.state-4 .avatar { background: var(--avatar-color) !important; }
+.state-4 .row-title { font-weight: 500; }
+
+
+/* === GUIDE SECTION === */
+.guide {
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+  padding: 48px 40px;
+}
+.guide-inner {
+  max-width: 720px;
+}
+.guide h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+.guide h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-top: 32px;
+  margin-bottom: 10px;
+}
+.guide p {
+  font-size: 15px;
+  color: #44403c;
+  line-height: 1.75;
+  margin-bottom: 14px;
+}
+.guide p strong { color: #1c1917; }
+
+.callout {
+  background: #f5f5f4;
+  border-left: 3px solid #a8a29e;
+  padding: 16px 20px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+}
+.callout p {
+  font-size: 14px;
+  color: #57534e;
+  margin-bottom: 0;
+}
+.callout p + p { margin-top: 8px; }
+
+.key-insight {
+  background: #fefce8;
+  border-left: 3px solid #eab308;
+  padding: 16px 20px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+}
+.key-insight p {
+  font-size: 14px;
+  color: #713f12;
+  margin-bottom: 0;
+}
+
+/* Transition smoothness */
+.mock-app, .mock-app * {
+  transition: all 0.4s ease;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- INTRO -->
+  <div class="intro">
+    <h1>The Visual Weight Spectrum</h1>
+    <p>Every element you add to an interface carries <strong>visual weight</strong> — color, contrast, borders, badges, shading. Each one seems helpful on its own. But they compound. And the threshold between "clear" and "cluttered" is invisible until you've crossed it.</p>
+    <p>Use the slider below to walk through five levels of visual emphasis on the same UI. Watch how the page transforms — and try to pinpoint the exact moment it becomes "too much."</p>
+  </div>
+
+  <!-- SLIDER -->
+  <div class="controls">
+    <div class="slider-row">
+      <span class="slider-label">Visual Weight</span>
+      <div class="slider-wrap">
+        <input type="range" id="overloadSlider" min="0" max="4" step="1" value="0">
+        <div class="tick-marks">
+          <span class="tick active" data-i="0">Minimal</span>
+          <span class="tick" data-i="1">Subtle</span>
+          <span class="tick" data-i="2">Moderate</span>
+          <span class="tick" data-i="3">Heavy</span>
+          <span class="tick" data-i="4">Maximum</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANNOTATION (changes per state) -->
+  <div class="annotation">
+    <div class="annotation-card" id="annotationCard">
+      <h3 id="annotationTitle">Level 0: Typography-driven hierarchy</h3>
+      <p id="annotationText">Loading...</p>
+    </div>
+  </div>
+
+  <!-- MOCK APPLICATION -->
+  <div class="mock-app" id="mockApp">
+
+    <!-- App Header -->
+    <div class="app-header">
+      <div class="app-logo">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="4" fill="#1c1917"/><path d="M6 14V6h2.5c1.7 0 2.8 1 2.8 2.3 0 1.4-1.1 2.4-2.8 2.4H8V14H6z" fill="#fff"/></svg>
+        ProjectHub
+      </div>
+      <div class="app-nav">
+        <span class="app-nav-item active">Tasks</span>
+        <span class="app-nav-item">Board</span>
+        <span class="app-nav-item">Timeline</span>
+        <span class="app-nav-item">Reports</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary">Import</button>
+        <button class="btn-primary">+ New Task</button>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="app-toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-title">Sprint 24</span>
+        <span class="toolbar-subtitle">Apr 7 – Apr 18 · 12 tasks</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="filter-btn">Filter</button>
+        <button class="filter-btn">Group by: Team</button>
+        <button class="filter-btn">Sort</button>
+      </div>
+    </div>
+
+    <!-- Group: Frontend -->
+    <div class="group">
+      <div class="group-strap" style="background:#3b82f6;"></div>
+      <div class="group-header" data-color="blue">
+        <div class="group-header-left">
+          <div class="group-color-dot" style="background:#3b82f6;"></div>
+          <span class="group-name">Frontend Team</span>
+          <span class="group-count">(4)</span>
+        </div>
+        <span class="group-total">32h estimated</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Refactor dashboard chart components</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#3b82f6;">KL</span>Kim L.</span>
+        <span class="row-status status-progress"><span class="status-icon">◐</span><span class="status-label">In Progress</span></span>
+        <span class="row-priority priority-high">High</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Fix mobile nav overflow on small screens</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#8b5cf6;">AR</span>Alex R.</span>
+        <span class="row-status status-review"><span class="status-icon">◉</span><span class="status-label">Review</span></span>
+        <span class="row-priority priority-high">High</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Add empty state illustration to projects list</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#f97316;">MP</span>Maya P.</span>
+        <span class="row-status status-todo"><span class="status-icon">○</span><span class="status-label">To Do</span></span>
+        <span class="row-priority priority-low">Low</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Implement keyboard shortcuts for task nav</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#3b82f6;">KL</span>Kim L.</span>
+        <span class="row-status status-done"><span class="status-icon">●</span><span class="status-label">Done</span></span>
+        <span class="row-priority priority-med">Med</span>
+        <span class="row-more">⋯</span>
+      </div>
+    </div>
+
+    <!-- Group: Backend -->
+    <div class="group">
+      <div class="group-strap" style="background:#8b5cf6;"></div>
+      <div class="group-header" data-color="purple">
+        <div class="group-header-left">
+          <div class="group-color-dot" style="background:#8b5cf6;"></div>
+          <span class="group-name">Backend Team</span>
+          <span class="group-count">(4)</span>
+        </div>
+        <span class="group-total">28h estimated</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Migrate user auth to OAuth 2.1 flow</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#22c55e;">ST</span>Sam T.</span>
+        <span class="row-status status-progress"><span class="status-icon">◐</span><span class="status-label">In Progress</span></span>
+        <span class="row-priority priority-high">High</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Add rate limiting to public API endpoints</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#ef4444;">JW</span>Jun W.</span>
+        <span class="row-status status-todo"><span class="status-icon">○</span><span class="status-label">To Do</span></span>
+        <span class="row-priority priority-med">Med</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Optimize N+1 queries in reports endpoint</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#22c55e;">ST</span>Sam T.</span>
+        <span class="row-status status-done"><span class="status-icon">●</span><span class="status-label">Done</span></span>
+        <span class="row-priority priority-med">Med</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Write integration tests for webhook handler</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#ef4444;">JW</span>Jun W.</span>
+        <span class="row-status status-review"><span class="status-icon">◉</span><span class="status-label">Review</span></span>
+        <span class="row-priority priority-low">Low</span>
+        <span class="row-more">⋯</span>
+      </div>
+    </div>
+
+    <!-- Group: Design -->
+    <div class="group">
+      <div class="group-strap" style="background:#22c55e;"></div>
+      <div class="group-header" data-color="green">
+        <div class="group-header-left">
+          <div class="group-color-dot" style="background:#22c55e;"></div>
+          <span class="group-name">Design Team</span>
+          <span class="group-count">(2)</span>
+        </div>
+        <span class="group-total">16h estimated</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Create onboarding flow wireframes for v2</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#f97316;">MP</span>Maya P.</span>
+        <span class="row-status status-progress"><span class="status-icon">◐</span><span class="status-label">In Progress</span></span>
+        <span class="row-priority priority-high">High</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Audit color contrast ratios across app</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#eab308;">RL</span>Ren L.</span>
+        <span class="row-status status-todo"><span class="status-icon">○</span><span class="status-label">To Do</span></span>
+        <span class="row-priority priority-low">Low</span>
+        <span class="row-more">⋯</span>
+      </div>
+    </div>
+
+    <!-- Group: DevOps -->
+    <div class="group">
+      <div class="group-strap" style="background:#f97316;"></div>
+      <div class="group-header" data-color="orange">
+        <div class="group-header-left">
+          <div class="group-color-dot" style="background:#f97316;"></div>
+          <span class="group-name">DevOps</span>
+          <span class="group-count">(2)</span>
+        </div>
+        <span class="group-total">12h estimated</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Set up staging environment auto-deploy</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#78716c;">CT</span>Chris T.</span>
+        <span class="row-status status-done"><span class="status-icon">●</span><span class="status-label">Done</span></span>
+        <span class="row-priority priority-med">Med</span>
+        <span class="row-more">⋯</span>
+      </div>
+      <div class="row">
+        <div class="row-check"></div>
+        <span class="row-title">Configure alerting thresholds for prod DB</span>
+        <span class="row-assignee"><span class="avatar" style="--avatar-color:#78716c;">CT</span>Chris T.</span>
+        <span class="row-status status-progress"><span class="status-icon">◐</span><span class="status-label">In Progress</span></span>
+        <span class="row-priority priority-high">High</span>
+        <span class="row-more">⋯</span>
+      </div>
+    </div>
+
+  </div><!-- /mock-app -->
+
+  <!-- GUIDE SECTION -->
+  <div class="guide">
+    <div class="guide-inner">
+      <h2>So what's actually happening here?</h2>
+
+      <h3>Every addition "makes sense"</h3>
+      <p>That's the trap. At each level, the change seems rational and helpful in isolation. <strong>"Color-code the groups so they're easier to scan"</strong> — yes, good idea. <strong>"Add status badges so you can see what needs attention"</strong> — absolutely reasonable. <strong>"Make the toolbar darker so it anchors the page"</strong> — sure, why not.</p>
+      <p>Each change passes the sniff test on its own. But the total cost is the sum of every addition, and that sum is invisible until the page is already drowning.</p>
+
+      <h3>The "where's the line?" problem</h3>
+      <p>Drag the slider back and forth slowly. Try to find the exact point where it goes from "helpful" to "too much." You can't, because there isn't one. It's a gradient, not a switch. That's what makes these decisions so hard — and why two reasonable people can look at the same interface and disagree about whether it's "clear" or "cluttered."</p>
+
+      <div class="key-insight">
+        <p><strong>This is the core insight:</strong> "Add shading to the header" feels like a binary decision (do it or don't). But it's actually choosing a point on a spectrum with no objectively correct answer. Every point on that spectrum has costs and benefits that can't be precisely measured.</p>
+      </div>
+
+      <h3>Local vs. global</h3>
+      <p>When someone says "shade the group header so it stands out more," they're evaluating <strong>one element in isolation</strong>. And they're right — locally, it IS more visible. But the designer is evaluating the entire page as a system. The question isn't "does this one header look better with shading?" It's "what happens to the whole page when we add visual weight here — and what about the next request, and the one after that?"</p>
+      <p>This is the same reason a city planner might say no to one more lane on a highway, even though "one more lane" would clearly help traffic <em>on that stretch</em>. The cost is distributed across the whole system in ways that aren't obvious from looking at one intersection.</p>
+
+      <h3>Why user feedback doesn't settle it</h3>
+      <p>If you talk to enough users, some will say the groups are hard to distinguish. Some will say the page feels clean and they love it. Both are telling the truth about their experience. But neither opinion tells you the right answer, because:</p>
+      <p><strong>You're always measuring perception, not performance.</strong> A user can tell you what they <em>notice</em> and what they <em>prefer</em>. They can't tell you what they <em>would have found faster</em> or <em>wouldn't have missed</em> under different conditions. Their preference and their efficiency aren't the same thing, and sometimes they directly conflict.</p>
+
+      <div class="callout">
+        <p>This doesn't mean user feedback doesn't matter — it matters enormously. It means that "2 users preferred the shaded version" and "2 users preferred the clean version" are both predictable outcomes that don't resolve the design question. The decision has to come from a broader model of how visual weight, attention, and complexity interact.</p>
+      </div>
+
+      <h3>What this means in practice</h3>
+      <p>None of this means the answer is always "less." Sometimes the right call is <em>more</em> visual distinction. The point is that these decisions require weighing tradeoffs that can't be fully quantified — and that's exactly the kind of judgment call that design expertise exists to make.</p>
+      <p>When a designer pushes back on a change that seems obviously good, they're usually not saying "I don't like it." They're saying <strong>"I've thought about where this sits on the spectrum, and I think moving the dial here costs more than it gains — across the whole system, not just this one element."</strong></p>
+      <p>That judgment might be wrong. But it's not arbitrary, and it's not aesthetic preference. It's a systems-level tradeoff that deserves to be engaged with on those terms.</p>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+const slider = document.getElementById('overloadSlider');
+const mockApp = document.getElementById('mockApp');
+const ticks = document.querySelectorAll('.tick');
+const annotationTitle = document.getElementById('annotationTitle');
+const annotationText = document.getElementById('annotationText');
+
+const annotations = [
+  {
+    title: "Level 0: Minimal",
+    text: "The page uses font weight, size, and spacing to create structure. Status is communicated through small colored icons — enough to parse at a glance without adding visual noise. The primary action (\"+ New Task\") is immediately obvious. Checkboxes and row actions stay hidden until you need them. Your eye settles quickly."
+  },
+  {
+    title: "Level 1: Subtle",
+    text: "We've added a colored side strap to visually group entries under their team. Status icons now have text labels. Checkboxes and row actions are always visible. Each change is small and justifiable — \"make the groups easier to scan,\" \"make status readable without memorizing icons,\" \"make actions discoverable.\" The page is a little busier but still clear."
+  },
+  {
+    title: "Level 2: Moderate",
+    text: "Group headers now have a tinted background in their team color. Avatars are colorful. Priorities are color-coded. The strap is slightly thicker. Every change makes individual sense: \"tint the header for faster scanning,\" \"colored avatars help you spot who's assigned,\" \"red = high priority is intuitive.\" But notice your eye is now pulled in more directions when you first land on the page."
+  },
+  {
+    title: "Level 3: Heavy",
+    text: "Group headers are now solid color blocks with white text. The toolbar is dark to \"anchor\" the page. Status badges are bold pills. Every individual decision is logical: \"bold headers scan faster,\" \"dark toolbar separates controls from content,\" \"prominent status helps triage.\" But the page now has 4+ elements competing to be the loudest. Where does your eye go first?"
+  },
+  {
+    title: "Level 4: Maximum",
+    text: "Every element has been individually \"optimized for visibility.\" Colored nav, dark header, blue toolbar, saturated group blocks, glowing status pills, colored priority badges, row striping. Each one was \"just one small improvement.\" The result: nothing is visible because everything is. The primary CTA is buried. Hierarchy is gone. Your eye bounces everywhere and settles nowhere."
+  }
+];
+
+function updateState(val) {
+  const v = parseInt(val);
+  mockApp.className = 'mock-app' + (v > 0 ? ' state-' + v : '');
+  ticks.forEach(t => {
+    t.classList.toggle('active', parseInt(t.dataset.i) === v);
+  });
+  annotationTitle.textContent = annotations[v].title;
+  annotationText.textContent = annotations[v].text;
+}
+
+slider.addEventListener('input', (e) => updateState(e.target.value));
+updateState(0);
+</script>
+
+</body>
+</html>
